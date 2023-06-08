@@ -1,0 +1,37 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - name: Setup
+    command: |
+      pre-commit install --install-hooks -t pre-commit -t commit-msg
+
+      gp sync-done pre-commit
+
+      exit 0
+  - init: |
+      if [ -f "go.mod" ]; then
+        go install ./...
+      fi
+    command: |
+      # Copy .cobra.yaml to $HOME
+      cp .cobra.yaml $HOME/.cobra.yaml
+
+      export GIT_REPO="${GITPOD_WORKSPACE_CONTEXT_URL/https:\/\//}"
+      export PROJECT_NAME="${GIT_REPO##*/}"
+
+      if [ ! -f "go.mod" ]; then
+        echo "Creating Go module"
+        go mod init "$GIT_REPO"
+      fi
+      if [ ! -f "main.go" ]; then
+        echo "Create Cobra project"
+        cobra-cli init
+        go mod tidy
+      fi
+
+vscode:
+  extensions:
+    - donjayamanne.git-extension-pack
+    - EditorConfig.EditorConfig
+    - golang.go

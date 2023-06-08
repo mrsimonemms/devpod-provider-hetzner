@@ -1,0 +1,27 @@
+{
+  "name": "devcontainer",
+  "image": "ghcr.io/mrsimonemms/devcontainers/full",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "donjayamanne.git-extension-pack",
+        "EditorConfig.EditorConfig",
+        "waderyan.gitblame",
+        "GitHub.vscode-github-actions",
+        "golang.go"
+      ]
+    }
+  },
+  "postStartCommand": {
+    "copy-cobra": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml",
+    "cobra-install": "go install github.com/spf13/cobra-cli@latest",
+    "golangci-lint": "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+    "errcheck": "go install github.com/kisielk/errcheck@latest",
+    "gofumpt": "go install mvdan.cc/gofumpt@latest",
+    "staticcheck": "go install honnef.co/go/tools/cmd/staticcheck@latest",
+    "goimports": "go install golang.org/x/tools/cmd/goimports@latest",
+    "pre-commit": "pre-commit install --install-hooks -t pre-commit -t commit-msg"
+  }
+}
