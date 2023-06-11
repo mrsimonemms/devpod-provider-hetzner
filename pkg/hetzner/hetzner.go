@@ -30,6 +30,10 @@ func (h *Hetzner) GetByName(ctx context.Context, name string) (interface{}, erro
 }
 
 func (h *Hetzner) Init(ctx context.Context) error {
+	_, _, err := h.client.Server.List(ctx, hcloud.ServerListOpts{})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
