@@ -16,6 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+	"strconv"
+
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/hetzner"
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +29,30 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create an instance",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		options, err := options.FromEnv(false)
+		if err != nil {
+			return err
+		}
+
+		ctx := context.Background()
+		h := hetzner.NewHetzner(options.Token)
+
+		req, publicKey, err := h.BuildServerOptions(ctx, options)
+		if err != nil {
+			return err
+		}
+		if publicKey == nil {
+			return errors.New("no public key generated")
+		}
+
+		diskSize, err := strconv.Atoi(options.DiskSize)
+		if err != nil {
+			return errors.Wrap(err, "parse disk size")
+		}
+
+		return h.Create(ctx, req, diskSize, *publicKey)
+	},
 }
 
 func init() {
