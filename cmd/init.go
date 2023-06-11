@@ -16,6 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/hetzner"
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +27,14 @@ import (
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Init an instance",
+	RunE: func(_ *cobra.Command, args []string) error {
+		options, err := options.FromEnv(true)
+		if err != nil {
+			return err
+		}
+
+		return hetzner.NewHetzner(options.Token).Init(context.Background())
+	},
 }
 
 func init() {
