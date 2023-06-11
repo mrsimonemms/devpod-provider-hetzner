@@ -23,5 +23,14 @@
     "staticcheck": "go install honnef.co/go/tools/cmd/staticcheck@latest",
     "goimports": "go install golang.org/x/tools/cmd/goimports@latest",
     "pre-commit": "pre-commit install --install-hooks -t pre-commit -t commit-msg"
+  },
+  "containerEnv": {
+    "DISK_IMAGE": "ubuntu-22.04",
+    "DISK_SIZE": "30",
+    "MACHINE_ID": "some-machine-id",
+    "MACHINE_FOLDER": "/home/vscode/.ssh",
+    "MACHINE_TYPE": "cx11",
+    "REGION": "nbg1",
+    "TOKEN": ""
   }
 }

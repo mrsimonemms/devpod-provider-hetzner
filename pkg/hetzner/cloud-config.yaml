@@ -1,0 +1,49 @@
+#cloud-config
+
+mounts:
+  - - /dev/disk/by-id/scsi-0HC_Volume_{{ .VolumeID }}
+    - /home/devpod
+    - ext4
+    - discard,nofail,defaults
+    - 0
+    - 0
+packages:
+  - curl
+  - ufw
+package_reboot_if_required: true
+package_update: true
+package_upgrade: true
+runcmd:
+  # Secure SSHD
+  - [ sed, -i, -e, 's/^PermitRootLogin yes/PermitRootLogin no/', '/etc/ssh/sshd_config' ]
+  - [ service, sshd, restart]
+  - [ rm, -f, /root/.ssh/authorized_keys ]
+  # Secure UFW
+  # - ufw default deny incoming
+  # - ufw default allow outgoing
+  - ufw allow ssh
+  - ufw enable
+  # Install Docker
+  - curl -fsSL https://get.docker.com | sh
+  - service docker start
+timezone: UTC
+users:
+  - default
+  - name: devpod
+    gecos: DevPod
+    groups:
+      - docker
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - "{{ .PublicKey }}"
+write_files:
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "features": {
+          "buildkit": true
+        },
+        "live-restore": true
+      }
