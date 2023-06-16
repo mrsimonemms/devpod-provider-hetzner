@@ -137,7 +137,30 @@ func (h *Hetzner) Init(ctx context.Context) error {
 }
 
 func (h *Hetzner) Status(ctx context.Context, name string) (client.Status, error) {
-	return client.Status("@todo"), nil
+	server, _, err := h.client.Server.GetByName(ctx, name)
+	if err != nil {
+		return client.StatusNotFound, err
+	}
+	if server == nil {
+		// No server - check the volume
+		volume, err := h.volumeByName(ctx, name)
+		if err != nil {
+			return client.StatusNotFound, err
+		} else if volume != nil {
+			return client.StatusStopped, nil
+		}
+
+		return client.StatusNotFound, nil
+	}
+
+	// Is it busy?
+	if server.Status != hcloud.ServerStatusRunning {
+		return client.StatusBusy, nil
+	}
+
+	// @todo(sje): do we need to check if the cloud-init script is finished? "ssh user@path cloud-init status"
+
+	return client.StatusRunning, nil
 }
 
 func (h *Hetzner) Stop(ctx context.Context, name string) error {
