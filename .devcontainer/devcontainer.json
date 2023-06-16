@@ -25,6 +25,7 @@
     "pre-commit": "pre-commit install --install-hooks -t pre-commit -t commit-msg"
   },
   "containerEnv": {
+    "GIT_REPO": "github.com/mrsimonemms/devpod-provider-hetzner",
     "DISK_IMAGE": "ubuntu-22.04",
     "DISK_SIZE": "30",
     "MACHINE_ID": "some-machine-id",
