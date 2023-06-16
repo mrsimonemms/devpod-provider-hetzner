@@ -9,7 +9,8 @@
 
 <!-- tocstop -->
 
-[DevPod](https://devpod.sh/) on [Hetzner](https://hetzner.cloud/?ref=UWVUhEZNkm6p)
+[DevPod](https://devpod.sh/) on [Hetzner](https://hetzner.cloud/?ref=UWVUhEZNkm6p).
+This is based upon the [DigitalOcean provider](https://github.com/loft-sh/devpod-provider-digitalocean).
 
 ## Open in Gitpod
 
