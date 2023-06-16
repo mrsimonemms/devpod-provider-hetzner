@@ -7,11 +7,13 @@ import (
 	"encoding/base64"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
 	"github.com/loft-sh/devpod/pkg/ssh"
 	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
+	"github.com/pkg/errors"
 )
 
 //go:embed cloud-config.yaml
@@ -121,7 +123,48 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 }
 
 func (h *Hetzner) Delete(ctx context.Context, name string) error {
-	return nil
+	// Delete volume
+	volume, err := h.volumeByName(ctx, name)
+	if err != nil {
+		return err
+	} else if volume != nil {
+		// Detatch volume
+		_, _, err := h.client.Volume.Detach(ctx, volume)
+		if err != nil {
+			return errors.Wrap(err, "detach volume")
+		}
+	}
+
+	// Wait until the volume is detached
+	for {
+		time.Sleep(time.Second)
+
+		// re-get volume
+		volume, err = h.volumeByName(ctx, name)
+		if err != nil {
+			return err
+		} else if volume.Server == nil {
+			break
+		}
+	}
+
+	// delete volume
+	if volume != nil {
+		_, err = h.client.Volume.Delete(ctx, volume)
+		if err != nil {
+			return errors.Wrap(err, "delete volume")
+		}
+	}
+
+	server, err := h.GetByName(ctx, name)
+	if err != nil {
+		return err
+	} else if server == nil {
+		return nil
+	}
+
+	_, _, err = h.client.Server.DeleteWithResult(ctx, server)
+	return err
 }
 
 func (h *Hetzner) GetByName(ctx context.Context, name string) (*hcloud.Server, error) {
