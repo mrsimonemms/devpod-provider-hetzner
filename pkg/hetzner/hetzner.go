@@ -124,8 +124,21 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (h *Hetzner) GetByName(ctx context.Context, name string) (interface{}, error) {
-	return nil, nil
+func (h *Hetzner) GetByName(ctx context.Context, name string) (*hcloud.Server, error) {
+	servers, _, err := h.client.Server.List(ctx, hcloud.ServerListOpts{Name: name})
+	if err != nil {
+		return nil, err
+	}
+
+	serverLength := len(servers)
+	if serverLength > 1 {
+		return nil, ErrMultipleServersFound(name)
+	}
+	if serverLength == 0 {
+		return nil, nil
+	}
+
+	return servers[0], nil
 }
 
 func (h *Hetzner) Init(ctx context.Context) error {
@@ -164,7 +177,17 @@ func (h *Hetzner) Status(ctx context.Context, name string) (client.Status, error
 }
 
 func (h *Hetzner) Stop(ctx context.Context, name string) error {
-	return nil
+	server, err := h.GetByName(ctx, name)
+	if err != nil {
+		return err
+	}
+	if server == nil {
+		return nil
+	}
+
+	_, _, err = h.client.Server.DeleteWithResult(ctx, server)
+
+	return err
 }
 
 func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume, error) {

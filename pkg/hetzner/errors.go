@@ -6,6 +6,9 @@ import (
 )
 
 var (
+	ErrMultipleServersFound = func(name string) error {
+		return fmt.Errorf("multiple server with name %s found", name)
+	}
 	ErrMultipleVolumesFound = func(name string) error {
 		return fmt.Errorf("multiple volumes with name %s found", name)
 	}
