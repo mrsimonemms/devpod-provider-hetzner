@@ -23,6 +23,7 @@ import (
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start an instance",
+	RunE:  createOrStartServer,
 }
 
 func init() {

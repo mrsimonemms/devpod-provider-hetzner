@@ -29,30 +29,32 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create an instance",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		options, err := options.FromEnv(false)
-		if err != nil {
-			return err
-		}
+	RunE:  createOrStartServer,
+}
 
-		ctx := context.Background()
-		h := hetzner.NewHetzner(options.Token)
+func createOrStartServer(cmd *cobra.Command, args []string) error {
+	options, err := options.FromEnv(false)
+	if err != nil {
+		return err
+	}
 
-		req, publicKey, err := h.BuildServerOptions(ctx, options)
-		if err != nil {
-			return err
-		}
-		if publicKey == nil {
-			return errors.New("no public key generated")
-		}
+	ctx := context.Background()
+	h := hetzner.NewHetzner(options.Token)
 
-		diskSize, err := strconv.Atoi(options.DiskSize)
-		if err != nil {
-			return errors.Wrap(err, "parse disk size")
-		}
+	req, publicKey, err := h.BuildServerOptions(ctx, options)
+	if err != nil {
+		return err
+	}
+	if publicKey == nil {
+		return errors.New("no public key generated")
+	}
 
-		return h.Create(ctx, req, diskSize, *publicKey)
-	},
+	diskSize, err := strconv.Atoi(options.DiskSize)
+	if err != nil {
+		return errors.Wrap(err, "parse disk size")
+	}
+
+	return h.Create(ctx, req, diskSize, *publicKey)
 }
 
 func init() {
