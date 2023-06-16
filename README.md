@@ -2,6 +2,7 @@
 
 <!-- toc -->
 
+* [Usage](#usage)
 * [Open in Gitpod](#open-in-gitpod)
 * [Open in a container](#open-in-a-container)
 
@@ -11,6 +12,12 @@
 
 [DevPod](https://devpod.sh/) on [Hetzner](https://hetzner.cloud/?ref=UWVUhEZNkm6p).
 This is based upon the [DigitalOcean provider](https://github.com/loft-sh/devpod-provider-digitalocean).
+
+## Usage
+
+To use this provider in your DevPod setup, you will need to do the following steps:
+
+1.
 
 ## Open in Gitpod
 

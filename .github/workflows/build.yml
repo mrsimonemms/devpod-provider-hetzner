@@ -82,19 +82,6 @@ jobs:
       - name: Lint Go
         uses: golangci/golangci-lint-action@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Get branch names
         id: branch-name
         uses: tj-actions/branch-names@v6
@@ -106,27 +93,6 @@ jobs:
         run: |
           if [ "${{ steps.branch-name.outputs.is_tag }}" = "true"  ];
           then
-            # Latest tag
-            IMG_NAME="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
-            # Tag name (usually vX.Y.Z)
-            IMG_NAME="${IMG_NAME},ghcr.io/${GITHUB_REPOSITORY,,}:${{ steps.branch-name.outputs.tag }}"
-
-            echo "image_name=${IMG_NAME}" >> "$GITHUB_OUTPUT"
-            echo "platforms=linux/amd64,linux/arm64,linux/arm/v7" >> "$GITHUB_OUTPUT"
-          else
-            # Use branch naming convention
-            TAG="branch-${{ steps.branch-name.outputs.current_branch }}"
-            # Change "/" for "-"
-            TAG="${TAG//\//-}"
-            # Set to lowercase
-            TAG="${TAG,,}"
-
-            echo "image_name=ghcr.io/${GITHUB_REPOSITORY,,}:${TAG}" >> "$GITHUB_OUTPUT"
-            echo "platforms=linux/amd64" >> "$GITHUB_OUTPUT"
-          fi
-
-          if [ "${{ steps.branch-name.outputs.is_tag }}" = "true"  ];
-          then
             echo "version=${{ steps.branch-name.outputs.tag }}" >> "$GITHUB_OUTPUT"
           else
             echo "version=development" >> "$GITHUB_OUTPUT"
@@ -135,24 +101,15 @@ jobs:
           echo "commit_id=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "gitRepo=github.com/${GITHUB_REPOSITORY}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          build-args: |
-            GIT_COMMIT=${{ steps.docker.outputs.commit_id }}
-            GIT_REPO=${{ steps.docker.outputs.gitRepo }}
-            VERSION=${{ steps.docker.outputs.version }}
-          platforms: ${{ steps.docker.outputs.platforms }}
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.docker.outputs.image_name }}
-
-      - name: Run GoReleaser
-        if: steps.branch-name.outputs.is_tag == 'true'
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          version: latest
-          args: release --clean
+      - name: Compile binaries
+        run: ./hack/build.sh
         env:
+          GIT_COMMIT: ${{ steps.docker.outputs.commit_id }}
           GIT_REPO: ${{ steps.docker.outputs.gitRepo }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.docker.outputs.version }}
+
+      - name: Release
+        if: steps.branch-name.outputs.is_tag == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
