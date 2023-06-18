@@ -16,36 +16,66 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
 
+	"github.com/loft-sh/devpod/pkg/ssh"
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/hetzner"
+	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 // commandCmd represents the command command
 var commandCmd = &cobra.Command{
 	Use:   "command",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Run a command on the instance",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		options, err := options.FromEnv(false)
+		if err != nil {
+			return err
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("command called")
+		ctx := context.Background()
+
+		command := os.Getenv("COMMAND")
+		if command == "" {
+			return fmt.Errorf("command environment variable is missing")
+		}
+
+		// Get private key
+		privateKey, err := ssh.GetPrivateKeyRawBase(options.MachineFolder)
+		if err != nil {
+			return fmt.Errorf("load private key: %w", err)
+		}
+
+		// Create SSH client
+		server, err := hetzner.NewHetzner(options.Token).GetByName(ctx, options.MachineID)
+		if err != nil {
+			return err
+		} else if server == nil {
+			return fmt.Errorf("droplet not found")
+		}
+
+		// Call external address
+		sshClient, err := ssh.NewSSHClient("devpod", fmt.Sprintf("%s:22", server.PublicNet.IPv4.IP), privateKey)
+		if err != nil {
+			return errors.Wrap(err, "create ssh client")
+		}
+		defer func() {
+			err = sshClient.Close()
+		}()
+
+		// Run command
+		if err := ssh.Run(ctx, sshClient, command, os.Stdin, os.Stdout, os.Stderr); err != nil {
+			return err
+		}
+
+		return err
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(commandCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// commandCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// commandCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

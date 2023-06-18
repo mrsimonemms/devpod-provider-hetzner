@@ -41,7 +41,7 @@ func createOrStartServer(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	h := hetzner.NewHetzner(options.Token)
 
-	req, publicKey, err := h.BuildServerOptions(ctx, options)
+	req, publicKey, privateKey, err := h.BuildServerOptions(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func createOrStartServer(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "parse disk size")
 	}
 
-	return h.Create(ctx, req, diskSize, *publicKey)
+	return h.Create(ctx, req, diskSize, *publicKey, privateKey)
 }
 
 func init() {

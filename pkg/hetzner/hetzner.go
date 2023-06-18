@@ -5,19 +5,26 @@ import (
 	"context"
 	"embed"
 	"encoding/base64"
+	"fmt"
 	"strconv"
 	"text/template"
 	"time"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
+	"github.com/loft-sh/devpod/pkg/log"
 	"github.com/loft-sh/devpod/pkg/ssh"
 	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed cloud-config.yaml
 var cloudConfig embed.FS
+
+type cloudInit struct {
+	Status string `json:"status"`
+}
 
 type Hetzner struct {
 	client *hcloud.Client
@@ -29,40 +36,45 @@ func NewHetzner(token string) *Hetzner {
 	}
 }
 
-func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options) (*hcloud.ServerCreateOpts, *string, error) {
+func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options) (*hcloud.ServerCreateOpts, *string, []byte, error) {
 	publicKeyBase, err := ssh.GetPublicKeyBase(opts.MachineFolder)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	publicKey, err := base64.StdEncoding.DecodeString(publicKeyBase)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
+	}
+
+	privateKey, err := ssh.GetPrivateKeyRawBase(opts.MachineFolder)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	location, _, err := h.client.Location.GetByName(ctx, opts.Region)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if location == nil {
-		return nil, nil, ErrUnknownRegion
+		return nil, nil, nil, ErrUnknownRegion
 	}
 
 	serverType, _, err := h.client.ServerType.GetByName(ctx, opts.MachineType)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if serverType == nil {
-		return nil, nil, ErrUnknownMachineID
+		return nil, nil, nil, ErrUnknownMachineID
 	}
 
 	// @todo(sje): work out if DevPod handles different architectures
 	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, hcloud.ArchitectureX86)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if image == nil {
-		return nil, nil, ErrUnknownDiskImage
+		return nil, nil, nil, ErrUnknownDiskImage
 	}
 
 	return &hcloud.ServerCreateOpts{
@@ -73,10 +85,12 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		Labels: map[string]string{
 			"type": "devpod",
 		},
-	}, hcloud.Ptr[string](string(publicKey)), nil
+	}, hcloud.Ptr[string](string(publicKey)), privateKey, nil
 }
 
-func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, diskSize int, publicKey string) error {
+func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, diskSize int, publicKey string, privateKeyFile []byte) error {
+	log.Default.Debug("Creating DevPod instance")
+
 	volume, err := h.volumeByName(ctx, req.Name)
 	if err != nil {
 		return err
@@ -84,6 +98,8 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 	if volume == nil {
 		// Create the volume as it doesn't exist
+		log.Default.Debug("Creating a new volume")
+
 		v, _, err := h.client.Volume.Create(ctx, hcloud.VolumeCreateOpts{
 			Location:  req.Location,
 			Name:      req.Name,
@@ -97,6 +113,8 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		if err != nil {
 			return err
 		}
+
+		log.Default.Debug("Volume successfully created")
 
 		volume = v.Volume
 	}
@@ -116,10 +134,53 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		},
 	}
 
-	// Create the volume
-	_, _, err = h.client.Server.Create(ctx, *req)
+	// Create the server
+	log.Default.Debug("Creating a new server")
+	server, _, err := h.client.Server.Create(ctx, *req)
+	if err != nil {
+		return err
+	}
 
-	return err
+	log.Default.Debug("Server created - waiting until provisioned")
+
+	for {
+		time.Sleep(time.Second)
+
+		log.Default.Debug("Checking server provision status")
+
+		// Check the server is provisioned - this runs "ssh user@path cloud-init status"
+		sshClient, err := ssh.NewSSHClient("devpod", fmt.Sprintf("%s:22", server.Server.PublicNet.IPv4.IP), privateKeyFile)
+		if err != nil {
+			log.Default.Debug("Unable to connect to server")
+			continue
+		}
+		defer func() {
+			err = sshClient.Close()
+		}()
+
+		buf := new(bytes.Buffer)
+		if err := ssh.Run(ctx, sshClient, "cloud-init status", &bytes.Buffer{}, buf, &bytes.Buffer{}); err != nil {
+			log.Default.Debug("Error retrieving cloud-init status")
+			continue
+		}
+
+		var status cloudInit
+		if err := yaml.Unmarshal(buf.Bytes(), &status); err != nil {
+			log.Default.Debug("Unable to parse cloud-init YAML")
+			continue
+		}
+
+		if status.Status == "done" {
+			// The server is ready
+			break
+		}
+
+		log.Default.Debug("Server not yet provisioned")
+	}
+
+	log.Default.Debug("Server provisioned")
+
+	return nil
 }
 
 func (h *Hetzner) Delete(ctx context.Context, name string) error {
@@ -143,7 +204,7 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 		volume, err = h.volumeByName(ctx, name)
 		if err != nil {
 			return err
-		} else if volume.Server == nil {
+		} else if volume == nil || volume.Server == nil {
 			break
 		}
 	}
@@ -213,8 +274,6 @@ func (h *Hetzner) Status(ctx context.Context, name string) (client.Status, error
 	if server.Status != hcloud.ServerStatusRunning {
 		return client.StatusBusy, nil
 	}
-
-	// @todo(sje): do we need to check if the cloud-init script is finished? "ssh user@path cloud-init status"
 
 	return client.StatusRunning, nil
 }
