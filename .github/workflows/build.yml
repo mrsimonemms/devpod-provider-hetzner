@@ -107,20 +107,15 @@ jobs:
       - uses: actions/setup-node@v3
         if: steps.branch-name.outputs.is_tag == 'true'
 
-      - name: Changelog
-        if: steps.branch-name.outputs.is_tag == 'true'
-        run:
-          npm install -g conventional-changelog-cli
-
-          conventional-changelog -o CHANGELOG.md
-
-          tail -n +2 CHANGELOG.md > CHANGELOG.tmp
-
-          mv CHANGELOG.tmp CHANGELOG.md
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
         if: steps.branch-name.outputs.is_tag == 'true'
         uses: softprops/action-gh-release@v1
         with:
-          body_path: CHANGELOG.md
+          body: ${{steps.github_release.outputs.changelog}}
           files: dist/*
