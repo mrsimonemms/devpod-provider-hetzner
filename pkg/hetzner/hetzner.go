@@ -3,10 +3,12 @@ package hetzner
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"embed"
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -68,6 +70,32 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		return nil, nil, nil, ErrUnknownMachineID
 	}
 
+	fingerprint, err := generateSSHKeyFingerprint(string(publicKey))
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to generate fingerprint for public ssh key")
+	}
+
+	sshKey, _, err := h.client.SSHKey.GetByFingerprint(ctx, fingerprint)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if sshKey == nil {
+		// Upload the key
+		uploadedSSHKey, _, err := h.client.SSHKey.Create(ctx, hcloud.SSHKeyCreateOpts{
+			Name:      opts.MachineID,
+			PublicKey: string(publicKey),
+			Labels: map[string]string{
+				"type": "devpod",
+			},
+		})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		sshKey = uploadedSSHKey
+	}
+
 	// @todo(sje): work out if DevPod handles different architectures
 	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, hcloud.ArchitectureX86)
 	if err != nil {
@@ -85,7 +113,10 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		Labels: map[string]string{
 			"type": "devpod",
 		},
-	}, hcloud.Ptr[string](string(publicKey)), privateKey, nil
+		SSHKeys: []*hcloud.SSHKey{
+			sshKey,
+		},
+	}, hcloud.Ptr(string(publicKey)), privateKey, nil
 }
 
 func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, diskSize int, publicKey string, privateKeyFile []byte) error {
@@ -104,8 +135,8 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			Location:  req.Location,
 			Name:      req.Name,
 			Size:      diskSize,
-			Format:    hcloud.Ptr[string]("ext4"),
-			Automount: hcloud.Ptr[bool](false),
+			Format:    hcloud.Ptr("ext4"),
+			Automount: hcloud.Ptr(false),
 			Labels: map[string]string{
 				"type": "devpod",
 			},
@@ -184,6 +215,16 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 }
 
 func (h *Hetzner) Delete(ctx context.Context, name string) error {
+	// Delete SSH key
+	if sshKey, _, err := h.client.SSHKey.GetByName(ctx, name); err != nil {
+		return err
+	} else if sshKey != nil {
+		_, err = h.client.SSHKey.Delete(ctx, sshKey)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Delete volume
 	volume, err := h.volumeByName(ctx, name)
 	if err != nil {
@@ -309,6 +350,29 @@ func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume
 	}
 
 	return volumes[0], nil
+}
+
+func generateSSHKeyFingerprint(publicKey string) (fingerprint string, err error) {
+	parts := strings.Fields(string(publicKey))
+	if len(parts) < 2 {
+		err = ErrBadSSHKey
+		return
+	}
+
+	k, err := base64.StdEncoding.DecodeString(parts[1])
+	if err != nil {
+		return
+	}
+
+	fp := md5.Sum([]byte(k))
+	for i, b := range fp {
+		fingerprint += fmt.Sprintf("%02x", b)
+		if i < len(fp)-1 {
+			fingerprint += ":"
+		}
+	}
+
+	return
 }
 
 func generateUserData(machineId, publicKey, volumeId string) (userData string, err error) {

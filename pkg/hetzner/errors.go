@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	ErrBadSSHKey            = errors.New("bad ssh key")
 	ErrMultipleServersFound = func(name string) error {
 		return fmt.Errorf("multiple server with name %s found", name)
 	}
