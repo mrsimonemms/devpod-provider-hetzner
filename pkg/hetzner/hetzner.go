@@ -77,6 +77,17 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		return nil, nil, nil, ErrUnknownDiskImage
 	}
 
+	hSSHKey, _, err := h.client.SSHKey.Create(ctx, hcloud.SSHKeyCreateOpts{
+		Name:      opts.MachineID,
+		PublicKey: string(publicKey),
+		Labels: map[string]string{
+			"type": "devpod",
+		},
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	return &hcloud.ServerCreateOpts{
 		Name:       opts.MachineID,
 		Location:   location,
@@ -85,7 +96,10 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		Labels: map[string]string{
 			"type": "devpod",
 		},
-	}, hcloud.Ptr[string](string(publicKey)), privateKey, nil
+		SSHKeys: []*hcloud.SSHKey{
+			hSSHKey,
+		},
+	}, hcloud.Ptr(string(publicKey)), privateKey, nil
 }
 
 func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, diskSize int, publicKey string, privateKeyFile []byte) error {
@@ -104,8 +118,8 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			Location:  req.Location,
 			Name:      req.Name,
 			Size:      diskSize,
-			Format:    hcloud.Ptr[string]("ext4"),
-			Automount: hcloud.Ptr[bool](false),
+			Format:    hcloud.Ptr("ext4"),
+			Automount: hcloud.Ptr(false),
 			Labels: map[string]string{
 				"type": "devpod",
 			},
@@ -193,6 +207,17 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 		_, _, err := h.client.Volume.Detach(ctx, volume)
 		if err != nil {
 			return errors.Wrap(err, "detach volume")
+		}
+	}
+
+	// Delete SSH key
+	sshKey, err := h.sshKeyByName(ctx, name)
+	if err != nil {
+		return err
+	} else if sshKey != nil {
+		_, err := h.client.SSHKey.Delete(ctx, sshKey)
+		if err != nil {
+			return errors.Wrap(err, "delete ssh key")
 		}
 	}
 
@@ -309,6 +334,25 @@ func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume
 	}
 
 	return volumes[0], nil
+}
+
+func (h *Hetzner) sshKeyByName(ctx context.Context, name string) (*hcloud.SSHKey, error) {
+	keys, _, err := h.client.SSHKey.List(ctx, hcloud.SSHKeyListOpts{
+		Name: name,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	volLen := len(keys)
+	if volLen > 1 {
+		return nil, ErrMultipleVolumesFound(name)
+	}
+	if volLen == 0 {
+		return nil, nil
+	}
+
+	return keys[0], nil
 }
 
 func generateUserData(machineId, publicKey, volumeId string) (userData string, err error) {
