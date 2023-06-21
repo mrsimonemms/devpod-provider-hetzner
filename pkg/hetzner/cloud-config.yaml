@@ -5,8 +5,8 @@ mounts:
     - /home/devpod
     - ext4
     - discard,nofail,defaults
-    - 0
-    - 0
+    - "0"
+    - "0"
 packages:
   - curl
   - ufw
@@ -19,8 +19,6 @@ runcmd:
   - [ service, sshd, restart]
   - [ rm, -f, /root/.ssh/authorized_keys ]
   # Secure UFW
-  # - ufw default deny incoming
-  # - ufw default allow outgoing
   - ufw allow ssh
   - ufw enable
   # Install Docker
