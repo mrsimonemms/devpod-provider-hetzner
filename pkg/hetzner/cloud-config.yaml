@@ -12,7 +12,6 @@ packages:
   - ufw
 package_reboot_if_required: true
 package_update: true
-package_upgrade: true
 runcmd:
   # Secure SSHD
   - [ sed, -i, -e, 's/^PermitRootLogin yes/PermitRootLogin no/', '/etc/ssh/sshd_config' ]
@@ -22,8 +21,8 @@ runcmd:
   - ufw allow ssh
   - ufw enable
   # Install Docker
-  - curl -fsSL https://get.docker.com | sh
-  - service docker start
+  - if docker ; then echo "Docker already installed"; else curl -fsSL https://get.docker.com | sh; fi
+  - systemctl restart docker
 timezone: UTC
 users:
   - default
