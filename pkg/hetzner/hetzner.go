@@ -97,7 +97,13 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 	}
 
 	// @todo(sje): work out if DevPod handles different architectures
-	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, hcloud.ArchitectureX86)
+	// Select the right Architecture for the image
+	architecture := hcloud.ArchitectureX86
+	if strings.HasPrefix(opts.MachineType, "ca") {
+		architecture = hcloud.ArchitectureARM
+	}
+
+	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, architecture)
 	if err != nil {
 		return nil, nil, nil, err
 	}
