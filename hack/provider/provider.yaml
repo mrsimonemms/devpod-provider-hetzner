@@ -57,6 +57,10 @@ options:
       - cpx41
       - cx51
       - cpx51
+      - cax11
+      - cax21
+      - cax31
+      - cax41
   INACTIVITY_TIMEOUT:
     description: If defined, will automatically stop the VM after the inactivity period.
     default: 10m
