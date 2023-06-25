@@ -44,16 +44,20 @@ options:
     description: The disk image to use.
     default: docker-ce
   MACHINE_TYPE:
-    description: The machine type to use.
+    description: The machine type to use. ARM64 images (starting "cax") are only available in the Falkenstein (fsn1) region.
     default: cx31
     suggestions:
       - cx11
+      - cax11
       - cpx11
       - cx21
+      - cax21
       - cpx21
       - cx31
+      - cax31
       - cpx31
       - cx41
+      - cax41
       - cpx41
       - cx51
       - cpx51
