@@ -96,8 +96,12 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		sshKey = uploadedSSHKey
 	}
 
-	// @todo(sje): work out if DevPod handles different architectures
-	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, hcloud.ArchitectureX86)
+	arch := hcloud.ArchitectureX86
+	if strings.HasPrefix(opts.MachineType, "cax") {
+		// Machines starting "cax" are ARM64
+		arch = hcloud.ArchitectureARM
+	}
+	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, arch)
 	if err != nil {
 		return nil, nil, nil, err
 	}
