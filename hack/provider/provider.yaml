@@ -48,19 +48,19 @@ options:
     description: The machine type to use.
     default: cpx31
     suggestions:
-      - cax11
-      - cpx11
       - cx22
-      - cax21
-      - cpx21
       - cx32
-      - cax31
-      - cpx31
       - cx42
-      - cax41
-      - cpx41
       - cx52
+      - cpx11
+      - cpx21
+      - cpx31
+      - cpx41
       - cpx51
+      - cax11
+      - cax21
+      - cax31
+      - cax41
       - ccx13
       - ccx23
       - ccx33
