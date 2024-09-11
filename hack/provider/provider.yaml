@@ -46,21 +46,20 @@ options:
     default: docker-ce
   MACHINE_TYPE:
     description: The machine type to use.
-    default: cx31
+    default: cpx31
     suggestions:
-      - cx11
       - cax11
       - cpx11
-      - cx21
+      - cx22
       - cax21
       - cpx21
-      - cx31
+      - cx32
       - cax31
       - cpx31
-      - cx41
+      - cx42
       - cax41
       - cpx41
-      - cx51
+      - cx52
       - cpx51
       - ccx13
       - ccx23
