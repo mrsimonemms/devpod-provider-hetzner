@@ -37,6 +37,7 @@ options:
       - hel1
       - hil
       - nbg1
+      - sin
   DISK_SIZE:
     description: The disk size in GB.
     default: "30"
