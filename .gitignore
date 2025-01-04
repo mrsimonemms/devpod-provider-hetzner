@@ -6,5 +6,5 @@ node_modules
 .idea
 .DS_Store
 Thumbs.db
-.commit
 .envrc
+go.work.sum

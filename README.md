@@ -3,8 +3,8 @@
 <!-- toc -->
 
 * [Usage](#usage)
-* [Open in Gitpod](#open-in-gitpod)
-* [Open in a container](#open-in-a-container)
+* [Contributing](#contributing)
+  * [Open in a container](#open-in-a-container)
 
 <!-- Regenerate with "pre-commit run -a markdown-toc" -->
 
@@ -24,10 +24,8 @@ To use this provider in your DevPod setup, you will need to do the following ste
 1. Get an [API token](https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/)
    from Hetzner. This will be used to manage resources.
 
-## Open in Gitpod
+## Contributing
 
-* [Open in Gitpod](https://gitpod.io/from-referrer/)
-
-## Open in a container
+### Open in a container
 
 * [Open in a container](https://code.visualstudio.com/docs/devcontainers/containers)

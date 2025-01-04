@@ -1,12 +1,30 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+  - repo: https://github.com/mrsimonemms/pre-commit-hooks
+    rev: v1.2.0
     hooks:
+      - id: license-eye
+      - id: go-fmt-import
+      - id: go-vet
+      - id: gofumpt
+      - id: go-err-check
+      - id: go-static-check
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: pretty-format-json
+        args:
+          - --autofix
+          - --no-sort-keys
+      - id: check-json
       - id: check-yaml
+        args:
+          - --allow-multiple-documents
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v2.3.0
+    rev: v3.2.0
     hooks:
       - id: conventional-pre-commit
         stages:
@@ -15,19 +33,11 @@ repos:
     rev: v1.1.1
     hooks:
       - id: markdown-toc
-  - repo: https://github.com/golangci/golangci-lint
-    rev: v1.53.2
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.13.0
     hooks:
-      - id: golangci-lint
-  - repo: https://github.com/Bahjat/pre-commit-golang
-    rev: v1.0.3
+      - id: markdownlint-cli2
+  - repo: https://github.com/mrsimonemms/toodaloo
+    rev: v0.2.2
     hooks:
-      - id: go-fmt-import
-      - id: go-vet
-      - id: gofumpt
-      - id: go-err-check
-      - id: go-static-check
-  - repo: https://github.com/markdownlint/markdownlint
-    rev: v0.12.0
-    hooks:
-      - id: markdownlint
+      - id: scan
