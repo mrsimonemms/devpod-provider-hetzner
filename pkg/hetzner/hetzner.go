@@ -140,7 +140,7 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 }
 
 func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, diskSize int, publicKey string, privateKeyFile []byte) error {
-	log.Default.Debug("Creating DevPod instance")
+	log.Default.Info("Creating DevPod instance")
 
 	volume, err := h.volumeByName(ctx, req.Name)
 	if err != nil {
@@ -149,7 +149,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 	if volume == nil {
 		// Create the volume as it doesn't exist
-		log.Default.Debug("Creating a new volume")
+		log.Default.Info("Creating a new volume")
 
 		v, _, err := h.client.Volume.Create(ctx, hcloud.VolumeCreateOpts{
 			Location:  req.Location,
@@ -165,7 +165,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			return err
 		}
 
-		log.Default.Debug("Volume successfully created")
+		log.Default.Info("Volume successfully created")
 
 		volume = v.Volume
 	}
@@ -186,23 +186,23 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 	}
 
 	// Create the server
-	log.Default.Debug("Creating a new server")
+	log.Default.Info("Creating a new server")
 	server, _, err := h.client.Server.Create(ctx, *req)
 	if err != nil {
 		return err
 	}
 
-	log.Default.Debug("Server created - waiting until provisioned")
+	log.Default.Info("Server created - waiting until provisioned")
 
 	for {
 		time.Sleep(time.Second)
 
-		log.Default.Debug("Checking server provision status")
+		log.Default.Info("Checking server provision status")
 
 		// Check the server is provisioned - this runs "ssh user@path cloud-init status"
 		sshClient, err := ssh.NewSSHClient("devpod", fmt.Sprintf("%s:22", server.Server.PublicNet.IPv4.IP), privateKeyFile)
 		if err != nil {
-			log.Default.Debug("Unable to connect to server")
+			log.Default.Info("Unable to connect to server")
 			continue
 		}
 		defer func() {
@@ -211,13 +211,13 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 		buf := new(bytes.Buffer)
 		if err := ssh.Run(ctx, sshClient, "cloud-init status", &bytes.Buffer{}, buf, &bytes.Buffer{}); err != nil {
-			log.Default.Debug("Error retrieving cloud-init status")
+			log.Default.Errorf("Error retrieving cloud-init status, %v", err)
 			continue
 		}
 
 		var status cloudInit
 		if err := yaml.Unmarshal(buf.Bytes(), &status); err != nil {
-			log.Default.Debug("Unable to parse cloud-init YAML")
+			log.Default.Errorf("Unable to parse cloud-init YAML: %v", err)
 			continue
 		}
 
@@ -226,10 +226,10 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			break
 		}
 
-		log.Default.Debug("Server not yet provisioned")
+		log.Default.Info("Server not yet provisioned")
 	}
 
-	log.Default.Debug("Server provisioned")
+	log.Default.Info("Server provisioned")
 
 	return nil
 }
