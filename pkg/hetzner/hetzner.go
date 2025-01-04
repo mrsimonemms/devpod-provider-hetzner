@@ -202,7 +202,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		// Check the server is provisioned - this runs "ssh user@path cloud-init status"
 		sshClient, err := ssh.NewSSHClient("devpod", fmt.Sprintf("%s:22", server.Server.PublicNet.IPv4.IP), privateKeyFile)
 		if err != nil {
-			log.Default.Info("Unable to connect to server")
+			log.Default.Errorf("Unable to connect to server: %v", err)
 			continue
 		}
 		defer func() {
@@ -395,7 +395,7 @@ func generateSSHKeyFingerprint(publicKey string) (fingerprint string, err error)
 	return
 }
 
-func generateUserData(machineId, publicKey, volumeId string) (userData string, err error) {
+func generateUserData(_, publicKey, volumeId string) (userData string, err error) {
 	t, err := template.New("cloud-config.yaml").ParseFS(cloudConfig, "cloud-config.yaml")
 	if err != nil {
 		return
@@ -403,7 +403,7 @@ func generateUserData(machineId, publicKey, volumeId string) (userData string, e
 
 	buf := new(bytes.Buffer)
 	if err = t.Execute(buf, map[string]string{
-		"PublicKey": publicKey,
+		"PublicKey": strings.TrimSuffix(publicKey, "\n"),
 		"VolumeID":  volumeId,
 	}); err != nil {
 		return

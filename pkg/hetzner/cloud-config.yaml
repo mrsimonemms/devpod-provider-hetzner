@@ -14,9 +14,15 @@ package_reboot_if_required: true
 package_update: true
 runcmd:
   # Secure SSHD
-  - [ sed, -i, -e, 's/^PermitRootLogin yes/PermitRootLogin no/', '/etc/ssh/sshd_config' ]
-  - [ service, sshd, restart]
-  - [ rm, -f, /root/.ssh/authorized_keys ]
+  - [
+      sed,
+      -i,
+      -e,
+      "s/^PermitRootLogin yes/PermitRootLogin no/",
+      "/etc/ssh/sshd_config",
+    ]
+  - [service, sshd, restart]
+  - [rm, -f, /root/.ssh/authorized_keys]
   # Secure UFW
   - ufw allow ssh
   - ufw enable
@@ -25,7 +31,6 @@ runcmd:
   - systemctl restart docker
 timezone: UTC
 users:
-  - default
   - name: devpod
     gecos: DevPod
     groups:
