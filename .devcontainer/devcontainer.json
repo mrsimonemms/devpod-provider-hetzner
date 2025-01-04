@@ -30,7 +30,7 @@
     "DISK_SIZE": "30",
     "MACHINE_ID": "some-machine-id",
     "MACHINE_FOLDER": "/home/vscode/.ssh",
-    "MACHINE_TYPE": "cx11",
+    "MACHINE_TYPE": "cx22",
     "REGION": "nbg1",
     "TOKEN": ""
   }
