@@ -1,6 +1,6 @@
 module github.com/mrsimonemms/devpod-provider-hetzner
 
-go 1.19
+go 1.23
 
 require (
 	github.com/hetznercloud/hcloud-go v1.45.1

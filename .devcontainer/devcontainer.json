@@ -1,7 +1,9 @@
 {
   "name": "devcontainer",
   "image": "ghcr.io/mrsimonemms/devcontainers/full",
-  "features": {},
+  "features": {
+    "ghcr.io/mrsimonemms/devcontainers/cobra-cli:0": {}
+  },
   "customizations": {
     "vscode": {
       "settings": {},
@@ -15,14 +17,7 @@
     }
   },
   "postStartCommand": {
-    "copy-cobra": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml",
-    "cobra-install": "go install github.com/spf13/cobra-cli@latest",
-    "golangci-lint": "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
-    "errcheck": "go install github.com/kisielk/errcheck@latest",
-    "gofumpt": "go install mvdan.cc/gofumpt@latest",
-    "staticcheck": "go install honnef.co/go/tools/cmd/staticcheck@latest",
-    "goimports": "go install golang.org/x/tools/cmd/goimports@latest",
-    "pre-commit": "pre-commit install --install-hooks -t pre-commit -t commit-msg"
+    "copy-cobra": "ln -s $PWD/.cobra.yaml $HOME/.cobra.yaml"
   },
   "containerEnv": {
     "GIT_REPO": "github.com/mrsimonemms/devpod-provider-hetzner",
