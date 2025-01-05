@@ -176,7 +176,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		return err
 	}
 	// Add to server config
-	req.UserData = userData
+	req.UserData = userData.String()
 
 	// Add volume to the server config
 	req.Volumes = []*hcloud.Volume{
@@ -210,7 +210,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		}()
 
 		buf := new(bytes.Buffer)
-		if err := ssh.Run(ctx, sshClient, "cloud-init status", &bytes.Buffer{}, buf, &bytes.Buffer{}); err != nil {
+		if err := ssh.Run(ctx, sshClient, "cloud-init status || true", &bytes.Buffer{}, buf, &bytes.Buffer{}); err != nil {
 			log.Default.Errorf("Error retrieving cloud-init status, %v", err)
 			continue
 		}
@@ -395,10 +395,10 @@ func generateSSHKeyFingerprint(publicKey string) (fingerprint string, err error)
 	return
 }
 
-func generateUserData(_, publicKey string, volumeId int64) (userData string, err error) {
+func generateUserData(_, publicKey string, volumeId int64) (*bytes.Buffer, error) {
 	t, err := template.New("cloud-config.yaml").ParseFS(cloudConfig, "cloud-config.yaml")
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
@@ -406,10 +406,8 @@ func generateUserData(_, publicKey string, volumeId int64) (userData string, err
 		"PublicKey": strings.TrimSuffix(publicKey, "\n"),
 		"VolumeID":  strconv.FormatInt(volumeId, 10),
 	}); err != nil {
-		return
+		return nil, err
 	}
 
-	userData = buf.String()
-
-	return
+	return buf, nil
 }
