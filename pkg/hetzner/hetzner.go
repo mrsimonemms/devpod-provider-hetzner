@@ -28,7 +28,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
 	"github.com/loft-sh/devpod/pkg/log"
 	"github.com/loft-sh/devpod/pkg/ssh"
@@ -171,7 +171,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 	}
 
 	// Generate the config init
-	userData, err := generateUserData(req.Name, publicKey, strconv.Itoa(volume.ID))
+	userData, err := generateUserData(req.Name, publicKey, volume.ID)
 	if err != nil {
 		return err
 	}
@@ -395,7 +395,7 @@ func generateSSHKeyFingerprint(publicKey string) (fingerprint string, err error)
 	return
 }
 
-func generateUserData(_, publicKey, volumeId string) (userData string, err error) {
+func generateUserData(_, publicKey string, volumeId int64) (userData string, err error) {
 	t, err := template.New("cloud-config.yaml").ParseFS(cloudConfig, "cloud-config.yaml")
 	if err != nil {
 		return
@@ -404,7 +404,7 @@ func generateUserData(_, publicKey, volumeId string) (userData string, err error
 	buf := new(bytes.Buffer)
 	if err = t.Execute(buf, map[string]string{
 		"PublicKey": strings.TrimSuffix(publicKey, "\n"),
-		"VolumeID":  volumeId,
+		"VolumeID":  strconv.FormatInt(volumeId, 10),
 	}); err != nil {
 		return
 	}
