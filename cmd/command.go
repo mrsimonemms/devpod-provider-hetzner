@@ -56,7 +56,7 @@ var commandCmd = &cobra.Command{
 		if err != nil {
 			return err
 		} else if server == nil {
-			return fmt.Errorf("droplet not found")
+			return fmt.Errorf("vm not found")
 		}
 
 		// Call external address
