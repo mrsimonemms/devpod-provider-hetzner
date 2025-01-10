@@ -68,7 +68,7 @@ for OS in ${PROVIDER_BUILD_PLATFORMS[@]}; do
     fi
 
     echo "Building for ${OS}/${ARCH}"
-    GOARCH=${ARCH} GOOS=${OS} ${GO_BUILD_CMD} -ldflags "${GO_BUILD_LDFLAGS}"\
+    GOARCH=${ARCH} GOOS=${OS} CGO_ENABLED=0 ${GO_BUILD_CMD} -ldflags "${GO_BUILD_LDFLAGS}"\
       -o "${PROVIDER_ROOT}/dist/${NAME}" main.go
     shasum -a 256 "${PROVIDER_ROOT}/dist/${NAME}" | cut -d ' ' -f 1 > "${PROVIDER_ROOT}/dist/${NAME}".sha256
   done
