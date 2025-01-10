@@ -249,7 +249,7 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 	volume, err := h.volumeByName(ctx, name)
 	if err != nil {
 		return err
-	} else if volume != nil {
+	} else if volume != nil && volume.Server != nil {
 		// Detatch volume
 		_, _, err := h.client.Volume.Detach(ctx, volume)
 		if err != nil {
