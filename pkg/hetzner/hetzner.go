@@ -368,9 +368,12 @@ func (h *Hetzner) Stop(ctx context.Context, name string) error {
 		return nil
 	}
 
-	_, _, err = h.client.Server.DeleteWithResult(ctx, server)
+	result, _, err := h.client.Server.DeleteWithResult(ctx, server)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return h.waitForActionCompletion(ctx, result.Action)
 }
 
 func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume, error) {
