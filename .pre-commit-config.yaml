@@ -17,6 +17,7 @@ repos:
           - --no-sort-keys
       - id: check-json
       - id: check-yaml
+        exclude: ^hack
         args:
           - --allow-multiple-documents
       - id: end-of-file-fixer

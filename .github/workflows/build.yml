@@ -57,6 +57,8 @@ jobs:
     needs:
       - commitlint
       - test
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
