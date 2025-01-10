@@ -2,7 +2,7 @@
 
 mounts:
   - - /dev/disk/by-id/scsi-0HC_Volume_{{ .VolumeID }}
-    - /home/devpod
+    - /home/{{ .Username }}
     - ext4
     - discard,nofail,defaults
     - "0"
@@ -31,7 +31,7 @@ runcmd:
   - systemctl restart docker
 timezone: UTC
 users:
-  - name: devpod
+  - name: "{{ .Username }}"
     gecos: DevPod
     groups:
       - docker
