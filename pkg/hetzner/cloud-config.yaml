@@ -10,8 +10,8 @@ mounts:
 packages:
   - curl
   - ufw
-package_reboot_if_required: true
-package_update: true
+package_reboot_if_required: false
+package_update: false
 runcmd:
   # Secure SSHD
   - [

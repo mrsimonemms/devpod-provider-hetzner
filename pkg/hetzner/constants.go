@@ -17,6 +17,7 @@
 package hetzner
 
 const (
-	SSH_USERNAME = "devpod"
-	SSH_PORT     = 22
+	maxServerConnectAttempts = 60
+	SSH_USERNAME             = "devpod"
+	SSH_PORT                 = 22
 )
