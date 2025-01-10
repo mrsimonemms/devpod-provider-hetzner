@@ -30,8 +30,8 @@ import (
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
-	"github.com/loft-sh/devpod/pkg/log"
 	"github.com/loft-sh/devpod/pkg/ssh"
+	"github.com/loft-sh/log"
 	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -240,7 +240,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		}()
 
 		buf := new(bytes.Buffer)
-		if err := ssh.Run(ctx, sshClient, "cloud-init status || true", &bytes.Buffer{}, buf, &bytes.Buffer{}); err != nil {
+		if err := ssh.Run(ctx, sshClient, "cloud-init status || true", &bytes.Buffer{}, buf, &bytes.Buffer{}, nil); err != nil {
 			log.Default.Errorf("Error retrieving cloud-init status, %v", err)
 			continue
 		}
