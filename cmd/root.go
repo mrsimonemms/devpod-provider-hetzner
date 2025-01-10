@@ -19,6 +19,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/loft-sh/log"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -32,9 +34,11 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
+		log.Default.SetLevel(logrus.DebugLevel)
+
+		return nil
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
