@@ -19,6 +19,7 @@ package options
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Options struct {
@@ -50,7 +51,8 @@ func FromEnv(skipMachine bool) (*Options, error) {
 		}
 	}
 
-	retOptions.Token, err = fromEnvOrError("TOKEN")
+	// DevPod uses "TOKEN", but Hetzner uses "HCLOUD_TOKEN" - allow HCLOUD_TOKEN for development
+	retOptions.Token, err = fromEnvOrError("TOKEN", "HCLOUD_TOKEN")
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +76,17 @@ func FromEnv(skipMachine bool) (*Options, error) {
 	return retOptions, nil
 }
 
-func fromEnvOrError(name string) (string, error) {
-	val := os.Getenv(name)
-	if val == "" {
-		return "", fmt.Errorf("couldn't find option %s in environment, please make sure %s is defined", name, name)
+func fromEnvOrError(name string, fallback ...string) (string, error) {
+	envvars := append([]string{name}, fallback...)
+
+	for _, e := range envvars {
+		val := os.Getenv(e)
+		if val != "" {
+			return val, nil
+		}
 	}
 
-	return val, nil
+	envvarCsv := strings.Join(envvars, ", ")
+
+	return "", fmt.Errorf("couldn't find option %s in environment, please make sure %s is defined", envvarCsv, envvarCsv)
 }
