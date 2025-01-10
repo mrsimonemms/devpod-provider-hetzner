@@ -26,6 +26,11 @@ To use this provider in your DevPod setup, you will need to do the following ste
 
 ## Contributing
 
+* Get a [Hetzner](https://hetzner.cloud/?ref=UWVUhEZNkm6p) account
+* Get an [API token](https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/)
+  with `read & write` access
+* Save this as `HCLOUD_TOKEN` in your `.envrc` file
+
 ### Open in a container
 
 * [Open in a container](https://code.visualstudio.com/docs/devcontainers/containers)
