@@ -151,7 +151,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 		// Create the volume as it doesn't exist
 		log.Default.Info("Creating a new volume")
 
-		v, _, err := h.client.Volume.Create(ctx, hcloud.VolumeCreateOpts{
+		result, _, err := h.client.Volume.Create(ctx, hcloud.VolumeCreateOpts{
 			Location:  req.Location,
 			Name:      req.Name,
 			Size:      diskSize,
@@ -165,9 +165,19 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			return err
 		}
 
+		actions := append([]*hcloud.Action{result.Action}, result.NextActions...)
+
+		for _, a := range actions {
+			log.Default.Debugf("Waiting for action to complete: %s", a.Command)
+			if err := h.waitForActionCompletion(ctx, a); err != nil {
+				log.Default.Errorf("Error in volume creation action: %s, %s", a.Command, err)
+				return err
+			}
+		}
+
 		log.Default.Info("Volume successfully created")
 
-		volume = v.Volume
+		volume = result.Volume
 	}
 
 	// Generate the config init
@@ -271,9 +281,14 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 		return err
 	} else if volume != nil && volume.Server != nil {
 		// Detatch volume
-		_, _, err := h.client.Volume.Detach(ctx, volume)
+		action, _, err := h.client.Volume.Detach(ctx, volume)
 		if err != nil {
 			return errors.Wrap(err, "detach volume")
+		}
+
+		if err := h.waitForActionCompletion(ctx, action); err != nil {
+			log.Default.Errorf("Error in volume detach action: %s, %s", action.Command, err)
+			return err
 		}
 	}
 
@@ -305,8 +320,12 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 		return nil
 	}
 
-	_, _, err = h.client.Server.DeleteWithResult(ctx, server)
-	return err
+	result, _, err := h.client.Server.DeleteWithResult(ctx, server)
+	if err != nil {
+		return err
+	}
+
+	return h.waitForActionCompletion(ctx, result.Action)
 }
 
 func (h *Hetzner) GetByName(ctx context.Context, name string) (*hcloud.Server, error) {
