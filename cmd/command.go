@@ -69,7 +69,7 @@ var commandCmd = &cobra.Command{
 		}()
 
 		// Run command
-		if err := ssh.Run(ctx, sshClient, command, os.Stdin, os.Stdout, os.Stderr); err != nil {
+		if err := ssh.Run(ctx, sshClient, command, os.Stdin, os.Stdout, os.Stderr, nil); err != nil {
 			return err
 		}
 
