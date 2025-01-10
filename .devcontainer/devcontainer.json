@@ -25,6 +25,7 @@
     "ensure-envrc": "touch .envrc"
   },
   "containerEnv": {
+    "DEVPOD_LOG_LEVEL": "debug",
     "GIT_REPO": "github.com/mrsimonemms/devpod-provider-hetzner",
     "DISK_IMAGE": "docker-ce",
     "DISK_SIZE": "30",
