@@ -115,7 +115,8 @@ func BuildConfig(version string, checksum map[string]string, defaultRegion strin
 		Icon:        "https://raw.githubusercontent.com/mrsimonemms/devpod-provider-hetzner/main/assets/hetzner.png",
 		OptionGroups: []provider.ProviderOptionGroup{
 			{
-				Name: "Hetzner options",
+				Name:           "Hetzner options",
+				DefaultVisible: true,
 				Options: []string{
 					"DISK_SIZE",
 					"DISK_IMAGE",
@@ -123,7 +124,8 @@ func BuildConfig(version string, checksum map[string]string, defaultRegion strin
 				},
 			},
 			{
-				Name: "Agent options",
+				Name:           "Agent options",
+				DefaultVisible: false,
 				Options: []string{
 					"AGENT_PATH",
 					"AGENT_DATA_PATH",
@@ -149,19 +151,23 @@ fi`,
 				Required:    true,
 				Default:     defaultRegion,
 				Enum:        regions,
+				Local:       true,
 			},
 			"DISK_SIZE": {
 				Description: "The disk size in GB.",
 				Default:     "30",
+				Local:       true,
 			},
 			"DISK_IMAGE": {
 				Description: "The disk image to use.",
 				Default:     "docker-ce",
+				Local:       true,
 			},
 			"MACHINE_TYPE": {
 				Description: "The machine type to use.",
 				Default:     defaultMachineType,
 				Enum:        machineTypes,
+				Local:       true,
 			},
 			"INACTIVITY_TIMEOUT": {
 				Description: "If defined, will automatically stop the VM after the inactivity period.",
