@@ -19,7 +19,6 @@ package hetzner
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"embed"
 	"encoding/base64"
 	"fmt"
@@ -27,6 +26,8 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	cryptoSsh "golang.org/x/crypto/ssh"
 
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
@@ -55,6 +56,8 @@ func NewHetzner(token string) *Hetzner {
 }
 
 func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options) (*hcloud.ServerCreateOpts, *string, []byte, error) {
+	log.Default.Debugf("Machine folder path: %s", opts.MachineFolder)
+
 	publicKeyBase, err := ssh.GetPublicKeyBase(opts.MachineFolder)
 	if err != nil {
 		return nil, nil, nil, err
@@ -465,27 +468,13 @@ func (h *Hetzner) waitForActionCompletion(ctx context.Context, action *hcloud.Ac
 	return nil
 }
 
-func generateSSHKeyFingerprint(publicKey string) (fingerprint string, err error) {
-	parts := strings.Fields(string(publicKey))
-	if len(parts) < 2 {
-		err = ErrBadSSHKey
-		return
-	}
-
-	k, err := base64.StdEncoding.DecodeString(parts[1])
+func generateSSHKeyFingerprint(publicKey string) (string, error) {
+	pk, _, _, _, err := cryptoSsh.ParseAuthorizedKey([]byte(publicKey))
 	if err != nil {
-		return
+		return "", err
 	}
 
-	fp := md5.Sum([]byte(k))
-	for i, b := range fp {
-		fingerprint += fmt.Sprintf("%02x", b)
-		if i < len(fp)-1 {
-			fingerprint += ":"
-		}
-	}
-
-	return
+	return cryptoSsh.FingerprintLegacyMD5(pk), nil
 }
 
 func generateUserData(_, publicKey string, volumeId int64) (*bytes.Buffer, error) {
