@@ -10,6 +10,8 @@ require (
 	github.com/loft-sh/log v0.0.0-20240219160058-26d83ffb46ac
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
+	github.com/stretchr/testify v1.10.0
+	golang.org/x/crypto v0.32.0
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -24,6 +26,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.7.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/typeurl/v2 v2.2.3 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/docker/docker v27.4.1+incompatible // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -49,7 +52,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/jsonc v0.3.2 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
