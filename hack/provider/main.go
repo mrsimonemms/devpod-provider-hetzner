@@ -244,7 +244,7 @@ fi`,
 				},
 				{
 					OS:       "windows",
-					Arch:     "arm64",
+					Arch:     "amd64",
 					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-windows-amd64.exe", releaseUrlBase),
 					Checksum: checksum["CHECKSUM_WINDOWS_AMD64"],
 				},
