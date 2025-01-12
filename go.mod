@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.4
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/hetznercloud/hcloud-go/v2 v2.17.1
 	github.com/loft-sh/devpod v0.6.8
 	github.com/loft-sh/log v0.0.0-20240219160058-26d83ffb46ac
