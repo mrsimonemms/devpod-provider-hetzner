@@ -27,7 +27,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Init an instance",
+	Short: "Initialise an instance",
 	RunE: func(_ *cobra.Command, args []string) error {
 		options, err := options.FromEnv(true)
 		if err != nil {
