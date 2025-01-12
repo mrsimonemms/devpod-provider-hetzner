@@ -29,6 +29,7 @@ import (
 
 	cryptoSsh "golang.org/x/crypto/ssh"
 
+	"github.com/google/uuid"
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/loft-sh/devpod/pkg/client"
 	"github.com/loft-sh/devpod/pkg/ssh"
@@ -100,12 +101,22 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 	}
 
 	if sshKey == nil {
+		// Generate name
+		machineId := opts.MachineID
+		if len(machineId) >= 24 {
+			machineId = opts.MachineID[:24]
+		}
+		name := fmt.Sprintf("%s-%s", machineId, uuid.NewString()[:8])
+
+		log.Default.Infof("Uploading SSH key: %s", name)
+
 		// Upload the key
 		uploadedSSHKey, _, err := h.client.SSHKey.Create(ctx, hcloud.SSHKeyCreateOpts{
-			Name:      opts.MachineID,
+			Name:      name,
 			PublicKey: string(publicKey),
 			Labels: map[string]string{
-				"type": "devpod",
+				"type":         "devpod",
+				labelMachineId: opts.MachineID,
 			},
 		})
 		if err != nil {
@@ -269,10 +280,18 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 func (h *Hetzner) Delete(ctx context.Context, name string) error {
 	// Delete SSH key
-	if sshKey, _, err := h.client.SSHKey.GetByName(ctx, name); err != nil {
+	keys, _, err := h.client.SSHKey.List(ctx, hcloud.SSHKeyListOpts{
+		ListOpts: hcloud.ListOpts{
+			LabelSelector: fmt.Sprintf("%s=%s", labelMachineId, name),
+		},
+	})
+	if err != nil {
 		return err
-	} else if sshKey != nil {
-		_, err = h.client.SSHKey.Delete(ctx, sshKey)
+	}
+
+	for _, k := range keys {
+		log.Default.Infof("Deleting SSH key: %s", k.Name)
+		_, err = h.client.SSHKey.Delete(ctx, k)
 		if err != nil {
 			return err
 		}
