@@ -30,7 +30,7 @@ import (
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete an instance",
+	Short: "Delete an instance and volume",
 	RunE: func(_ *cobra.Command, args []string) error {
 		options, err := options.FromEnv(false)
 		if err != nil {
