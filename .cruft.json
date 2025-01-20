@@ -1,7 +1,7 @@
 {
   "template": "https://github.com/mrsimonemms/new",
-  "commit": "0fcf58f86a5527bbb54409bc0e50602bf683abb0",
-  "checkout": "main",
+  "commit": "49101daa97824b99710535e529f5141e53fd0055",
+  "checkout": null,
   "context": {
     "cookiecutter": {
       "project_name": "devpod-provider-hetzner",
