@@ -56,7 +56,49 @@ func NewHetzner(token string) *Hetzner {
 	}
 }
 
-func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options) (*hcloud.ServerCreateOpts, *string, []byte, error) {
+func (h *Hetzner) upsertPublicKey(ctx context.Context, publicKey, machineID string) (*hcloud.SSHKey, error) {
+	fingerprint, err := generateSSHKeyFingerprint(publicKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate fingerprint for public ssh key")
+	}
+
+	sshKey, _, err := h.client.SSHKey.GetByFingerprint(ctx, fingerprint)
+	if err != nil {
+		return nil, err
+	}
+
+	if sshKey == nil {
+		// Generate name
+		if len(machineID) >= 24 {
+			machineID = machineID[:24]
+		}
+		name := fmt.Sprintf("%s-%s", machineID, uuid.NewString()[:8])
+
+		log.Default.Infof("Uploading SSH key: %s", name)
+
+		// Upload the key
+		uploadedSSHKey, _, err := h.client.SSHKey.Create(ctx, hcloud.SSHKeyCreateOpts{
+			Name:      name,
+			PublicKey: publicKey,
+			Labels: map[string]string{
+				"type":         "devpod",
+				labelMachineID: machineID,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		sshKey = uploadedSSHKey
+	}
+
+	return sshKey, nil
+}
+
+func (h *Hetzner) BuildServerOptions(
+	ctx context.Context,
+	opts *options.Options,
+) (serverCreateOpts *hcloud.ServerCreateOpts, publicKeyStr *string, privateKey []byte, err error) {
 	log.Default.Debugf("Machine folder path: %s", opts.MachineFolder)
 
 	publicKeyBase, err := ssh.GetPublicKeyBase(opts.MachineFolder)
@@ -69,7 +111,7 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		return nil, nil, nil, err
 	}
 
-	privateKey, err := ssh.GetPrivateKeyRawBase(opts.MachineFolder)
+	privateKey, err = ssh.GetPrivateKeyRawBase(opts.MachineFolder)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -90,40 +132,9 @@ func (h *Hetzner) BuildServerOptions(ctx context.Context, opts *options.Options)
 		return nil, nil, nil, ErrUnknownMachineID
 	}
 
-	fingerprint, err := generateSSHKeyFingerprint(string(publicKey))
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to generate fingerprint for public ssh key")
-	}
-
-	sshKey, _, err := h.client.SSHKey.GetByFingerprint(ctx, fingerprint)
+	sshKey, err := h.upsertPublicKey(ctx, string(publicKey), opts.MachineID)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-
-	if sshKey == nil {
-		// Generate name
-		machineId := opts.MachineID
-		if len(machineId) >= 24 {
-			machineId = opts.MachineID[:24]
-		}
-		name := fmt.Sprintf("%s-%s", machineId, uuid.NewString()[:8])
-
-		log.Default.Infof("Uploading SSH key: %s", name)
-
-		// Upload the key
-		uploadedSSHKey, _, err := h.client.SSHKey.Create(ctx, hcloud.SSHKeyCreateOpts{
-			Name:      name,
-			PublicKey: string(publicKey),
-			Labels: map[string]string{
-				"type":         "devpod",
-				labelMachineId: opts.MachineID,
-			},
-		})
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		sshKey = uploadedSSHKey
 	}
 
 	arch := hcloud.ArchitectureX86
@@ -241,31 +252,9 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 		time.Sleep(time.Second)
 
-		log.Default.Debug("Checking server provision status")
+		status := attemptConnection(ctx, server, privateKeyFile)
 
-		// Check the server is provisioned - this runs "ssh user@path cloud-init status"
-		sshClient, err := ssh.NewSSHClient(SSH_USERNAME, fmt.Sprintf("%s:%d", server.Server.PublicNet.IPv4.IP, SSH_PORT), privateKeyFile)
-		if err != nil {
-			log.Default.Warnf("Unable to connect to server: %v", err)
-			continue
-		}
-		defer func() {
-			err = sshClient.Close()
-		}()
-
-		buf := new(bytes.Buffer)
-		if err := ssh.Run(ctx, sshClient, "cloud-init status || true", &bytes.Buffer{}, buf, &bytes.Buffer{}, nil); err != nil {
-			log.Default.Errorf("Error retrieving cloud-init status, %v", err)
-			continue
-		}
-
-		var status cloudInit
-		if err := yaml.Unmarshal(buf.Bytes(), &status); err != nil {
-			log.Default.Errorf("Unable to parse cloud-init YAML: %v", err)
-			continue
-		}
-
-		if status.Status == "done" {
+		if status != nil && status.Status == "done" {
 			// The server is ready
 			break
 		}
@@ -282,7 +271,7 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 	// Delete SSH key
 	keys, _, err := h.client.SSHKey.List(ctx, hcloud.SSHKeyListOpts{
 		ListOpts: hcloud.ListOpts{
-			LabelSelector: fmt.Sprintf("%s=%s", labelMachineId, name),
+			LabelSelector: fmt.Sprintf("%s=%s", labelMachineID, name),
 		},
 	})
 	if err != nil {
@@ -298,41 +287,8 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 	}
 
 	// Delete volume
-	volume, err := h.volumeByName(ctx, name)
-	if err != nil {
+	if err := h.deleteVolume(ctx, name); err != nil {
 		return err
-	} else if volume != nil && volume.Server != nil {
-		// Detatch volume
-		action, _, err := h.client.Volume.Detach(ctx, volume)
-		if err != nil {
-			return errors.Wrap(err, "detach volume")
-		}
-
-		if err := h.waitForActionCompletion(ctx, action); err != nil {
-			log.Default.Errorf("Error in volume detach action: %s, %s", action.Command, err)
-			return err
-		}
-	}
-
-	// Wait until the volume is detached
-	for {
-		time.Sleep(time.Second)
-
-		// re-get volume
-		volume, err = h.volumeByName(ctx, name)
-		if err != nil {
-			return err
-		} else if volume == nil || volume.Server == nil {
-			break
-		}
-	}
-
-	// delete volume
-	if volume != nil {
-		_, err = h.client.Volume.Delete(ctx, volume)
-		if err != nil {
-			return errors.Wrap(err, "delete volume")
-		}
 	}
 
 	server, err := h.GetByName(ctx, name)
@@ -417,6 +373,47 @@ func (h *Hetzner) Stop(ctx context.Context, name string) error {
 	return h.waitForActionCompletion(ctx, result.Action)
 }
 
+func (h *Hetzner) deleteVolume(ctx context.Context, name string) error {
+	volume, err := h.volumeByName(ctx, name)
+	if err != nil {
+		return err
+	} else if volume != nil && volume.Server != nil {
+		// Detatch volume
+		action, _, err := h.client.Volume.Detach(ctx, volume)
+		if err != nil {
+			return errors.Wrap(err, "detach volume")
+		}
+
+		if err := h.waitForActionCompletion(ctx, action); err != nil {
+			log.Default.Errorf("Error in volume detach action: %s, %s", action.Command, err)
+			return err
+		}
+	}
+
+	// Wait until the volume is detached
+	for {
+		time.Sleep(time.Second)
+
+		// re-get volume
+		volume, err = h.volumeByName(ctx, name)
+		if err != nil {
+			return err
+		} else if volume == nil || volume.Server == nil {
+			break
+		}
+	}
+
+	// delete volume
+	if volume != nil {
+		_, err = h.client.Volume.Delete(ctx, volume)
+		if err != nil {
+			return errors.Wrap(err, "delete volume")
+		}
+	}
+
+	return nil
+}
+
 func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume, error) {
 	volumes, _, err := h.client.Volume.List(ctx, hcloud.VolumeListOpts{
 		Name: name,
@@ -487,7 +484,36 @@ func (h *Hetzner) waitForActionCompletion(ctx context.Context, action *hcloud.Ac
 	return nil
 }
 
+func attemptConnection(ctx context.Context, server hcloud.ServerCreateResult, privateKeyFile []byte) *cloudInit {
+	log.Default.Debug("Checking server provision status")
+
+	// Check the server is provisioned - this runs "ssh user@path cloud-init status"
+	sshClient, err := ssh.NewSSHClient(SSHUsername, fmt.Sprintf("%s:%d", server.Server.PublicNet.IPv4.IP, SSHPort), privateKeyFile)
+	if err != nil {
+		log.Default.Warnf("Unable to connect to server: %v", err)
+		return nil
+	}
+	defer func() {
+		err = sshClient.Close()
+	}()
+
+	buf := new(bytes.Buffer)
+	if err := ssh.Run(ctx, sshClient, "cloud-init status || true", &bytes.Buffer{}, buf, &bytes.Buffer{}, nil); err != nil {
+		log.Default.Errorf("Error retrieving cloud-init status, %v", err)
+		return nil
+	}
+
+	var status cloudInit
+	if err := yaml.Unmarshal(buf.Bytes(), &status); err != nil {
+		log.Default.Errorf("Unable to parse cloud-init YAML: %v", err)
+		return nil
+	}
+
+	return &status
+}
+
 func generateSSHKeyFingerprint(publicKey string) (string, error) {
+	//nolint:dogsled // correct assignment
 	pk, _, _, _, err := cryptoSsh.ParseAuthorizedKey([]byte(publicKey))
 	if err != nil {
 		return "", err
@@ -496,17 +522,17 @@ func generateSSHKeyFingerprint(publicKey string) (string, error) {
 	return cryptoSsh.FingerprintLegacyMD5(pk), nil
 }
 
-func generateUserData(_, publicKey string, volumeId int64) (*bytes.Buffer, error) {
+func generateUserData(_, publicKey string, volumeID int64) (*bytes.Buffer, error) {
 	t, err := template.New("cloud-config.yaml").ParseFS(cloudConfig, "cloud-config.yaml")
 	if err != nil {
 		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
-	if err = t.Execute(buf, map[string]string{
+	if err := t.Execute(buf, map[string]string{
 		"PublicKey": strings.TrimSuffix(publicKey, "\n"),
-		"VolumeID":  strconv.FormatInt(volumeId, 10),
-		"Username":  SSH_USERNAME,
+		"VolumeID":  strconv.FormatInt(volumeID, 10),
+		"Username":  SSHUsername,
 	}); err != nil {
 		return nil, err
 	}

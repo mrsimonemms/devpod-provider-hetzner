@@ -97,7 +97,14 @@ func main() {
 
 	version := fmt.Sprintf("v%s", os.Args[1])
 
-	s, err := yaml.Marshal(BuildConfig(version, checksums, "nbg1", regions, "cx32", machineTypes))
+	s, err := yaml.Marshal(BuildConfig(
+		version,
+		checksums,
+		"nbg1",
+		regions,
+		"cx32",
+		machineTypes,
+	))
 	if err != nil {
 		panic(err)
 	}
@@ -105,8 +112,16 @@ func main() {
 	fmt.Print(string(s))
 }
 
-func BuildConfig(version string, checksum map[string]string, defaultRegion string, regions types.OptionEnumArray, defaultMachineType string, machineTypes types.OptionEnumArray) provider.ProviderConfig {
-	releaseUrlBase := fmt.Sprintf("https://github.com/mrsimonemms/devpod-provider-hetzner/releases/download/%s", version)
+//nolint:funlen // ignore
+func BuildConfig(
+	version string,
+	checksum map[string]string,
+	defaultRegion string,
+	regions types.OptionEnumArray,
+	defaultMachineType string,
+	machineTypes types.OptionEnumArray,
+) provider.ProviderConfig {
+	releaseURLBase := fmt.Sprintf("https://github.com/mrsimonemms/devpod-provider-hetzner/releases/download/%s", version)
 
 	return provider.ProviderConfig{
 		Name:        "hetzner",
@@ -201,13 +216,13 @@ fi`,
 					{
 						OS:       "linux",
 						Arch:     "amd64",
-						Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-amd64", releaseUrlBase),
+						Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-amd64", releaseURLBase),
 						Checksum: checksum["CHECKSUM_LINUX_AMD64"],
 					},
 					{
 						OS:       "linux",
 						Arch:     "arm64",
-						Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-arm64", releaseUrlBase),
+						Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-arm64", releaseURLBase),
 						Checksum: checksum["CHECKSUM_LINUX_ARM64"],
 					},
 				},
@@ -221,31 +236,31 @@ fi`,
 				{
 					OS:       "linux",
 					Arch:     "amd64",
-					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-amd64", releaseUrlBase),
+					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-amd64", releaseURLBase),
 					Checksum: checksum["CHECKSUM_LINUX_AMD64"],
 				},
 				{
 					OS:       "linux",
 					Arch:     "arm64",
-					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-arm64", releaseUrlBase),
+					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-linux-arm64", releaseURLBase),
 					Checksum: checksum["CHECKSUM_LINUX_ARM64"],
 				},
 				{
 					OS:       "darwin",
 					Arch:     "amd64",
-					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-darwin-amd64", releaseUrlBase),
+					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-darwin-amd64", releaseURLBase),
 					Checksum: checksum["CHECKSUM_DARWIN_AMD64"],
 				},
 				{
 					OS:       "darwin",
 					Arch:     "arm64",
-					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-darwin-arm64", releaseUrlBase),
+					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-darwin-arm64", releaseURLBase),
 					Checksum: checksum["CHECKSUM_DARWIN_ARM64"],
 				},
 				{
 					OS:       "windows",
 					Arch:     "amd64",
-					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-windows-amd64.exe", releaseUrlBase),
+					Path:     fmt.Sprintf("%s/devpod-provider-hetzner-windows-amd64.exe", releaseURLBase),
 					Checksum: checksum["CHECKSUM_WINDOWS_AMD64"],
 				},
 			},

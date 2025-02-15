@@ -17,8 +17,8 @@
 package hetzner
 
 const (
-	labelMachineId           = "machineId"
+	labelMachineID           = "machineId"
 	maxServerConnectAttempts = 60
-	SSH_USERNAME             = "devpod"
-	SSH_PORT                 = 22
+	SSHUsername              = "devpod"
+	SSHPort                  = 22
 )
