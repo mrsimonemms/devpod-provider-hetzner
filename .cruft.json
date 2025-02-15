@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/mrsimonemms/new",
-  "commit": "49101daa97824b99710535e529f5141e53fd0055",
+  "commit": "7922026faaa44d66affad0ad33e5562391cc5c91",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -9,7 +9,8 @@
       "author": "Simon Emms <simon@simonemms.com>",
       "repo": "github.com/mrsimonemms/devpod-provider-hetzner",
       "use_viper": false,
-      "_template": "https://github.com/mrsimonemms/new"
+      "_template": "https://github.com/mrsimonemms/new",
+      "_commit": "7922026faaa44d66affad0ad33e5562391cc5c91"
     }
   },
   "directory": "golang-cobra",
