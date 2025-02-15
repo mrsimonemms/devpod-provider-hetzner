@@ -50,6 +50,9 @@ jobs:
       - name: go-test
         run: go test -v ./...
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+
       - uses: pre-commit/action@v3.0.1
 
   build:

@@ -5,11 +5,12 @@ repos:
       - id: license-eye
       - id: go-fmt-import
       - id: go-vet
+        entry: go vet ./...
       - id: gofumpt
       - id: go-err-check
       - id: go-static-check
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: pretty-format-json
         args:
@@ -22,23 +23,25 @@ repos:
           - --allow-multiple-documents
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.2.0
+    rev: v4.0.0
     hooks:
       - id: conventional-pre-commit
         stages:
           - commit-msg
   - repo: https://github.com/trussworks/pre-commit-hooks
-    rev: v1.1.1
+    rev: v2.0.0
     hooks:
       - id: markdown-toc
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.13.0
+    rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.64.5
+    hooks:
+      - id: golangci-lint
   - repo: https://github.com/mrsimonemms/toodaloo
-    rev: v0.2.2
+    rev: v0.2.4
     hooks:
       - id: scan

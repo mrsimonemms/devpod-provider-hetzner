@@ -10,6 +10,7 @@ require (
 	github.com/loft-sh/devpod v0.6.8
 	github.com/loft-sh/log v0.0.0-20240219160058-26d83ffb46ac
 	github.com/pkg/errors v0.9.1
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.32.0
@@ -50,7 +51,6 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.61.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tidwall/jsonc v0.3.2 // indirect
 	golang.org/x/net v0.34.0 // indirect
