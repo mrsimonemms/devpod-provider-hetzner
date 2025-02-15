@@ -6,9 +6,10 @@ toolchain go1.23.4
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/hetznercloud/hcloud-go/v2 v2.17.1
+	github.com/hetznercloud/hcloud-go/v2 v2.19.1
 	github.com/loft-sh/devpod v0.6.8
 	github.com/loft-sh/log v0.0.0-20240219160058-26d83ffb46ac
+	github.com/mrsimonemms/hetzner-golang-actions v0.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1

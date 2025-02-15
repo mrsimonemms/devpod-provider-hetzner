@@ -35,6 +35,7 @@ import (
 	"github.com/loft-sh/devpod/pkg/ssh"
 	"github.com/loft-sh/log"
 	"github.com/mrsimonemms/devpod-provider-hetzner/pkg/options"
+	hga "github.com/mrsimonemms/hetzner-golang-actions"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -190,14 +191,9 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			return err
 		}
 
-		actions := append([]*hcloud.Action{result.Action}, result.NextActions...)
-
-		for _, a := range actions {
-			log.Default.Debugf("Waiting for action to complete: %s", a.Command)
-			if err := h.waitForActionCompletion(ctx, a); err != nil {
-				log.Default.Errorf("Error in volume creation action: %s, %s", a.Command, err)
-				return err
-			}
+		if err := hga.NewWaiter(h.client).Wait(ctx, result.Action, result.NextActions...); err != nil {
+			log.Default.Errorf("Error in volume creation action: %s", err)
+			return err
 		}
 
 		log.Default.Info("Volume successfully created")
@@ -229,14 +225,9 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 
 	log.Default.Info("Server creation triggered")
 
-	actions := append([]*hcloud.Action{server.Action}, server.NextActions...)
-
-	for _, a := range actions {
-		log.Default.Debugf("Waiting for action to complete: %s", a.Command)
-		if err := h.waitForActionCompletion(ctx, a, time.Minute*5); err != nil {
-			log.Default.Errorf("Error in server creation action: %s, %s", a.Command, err)
-			return err
-		}
+	if err := hga.NewWaiter(h.client).Wait(ctx, server.Action, server.NextActions...); err != nil {
+		log.Default.Errorf("Error in server creation action: %s", err)
+		return err
 	}
 
 	log.Default.Info("Server created - provisioning")
@@ -303,7 +294,7 @@ func (h *Hetzner) Delete(ctx context.Context, name string) error {
 		return err
 	}
 
-	return h.waitForActionCompletion(ctx, result.Action)
+	return hga.NewWaiter(h.client).Wait(ctx, result.Action)
 }
 
 func (h *Hetzner) GetByName(ctx context.Context, name string) (*hcloud.Server, error) {
@@ -370,7 +361,7 @@ func (h *Hetzner) Stop(ctx context.Context, name string) error {
 		return err
 	}
 
-	return h.waitForActionCompletion(ctx, result.Action)
+	return hga.NewWaiter(h.client).Wait(ctx, result.Action)
 }
 
 func (h *Hetzner) deleteVolume(ctx context.Context, name string) error {
@@ -384,7 +375,7 @@ func (h *Hetzner) deleteVolume(ctx context.Context, name string) error {
 			return errors.Wrap(err, "detach volume")
 		}
 
-		if err := h.waitForActionCompletion(ctx, action); err != nil {
+		if err := hga.NewWaiter(h.client).Wait(ctx, action); err != nil {
 			log.Default.Errorf("Error in volume detach action: %s, %s", action.Command, err)
 			return err
 		}
@@ -431,57 +422,6 @@ func (h *Hetzner) volumeByName(ctx context.Context, name string) (*hcloud.Volume
 	}
 
 	return volumes[0], nil
-}
-
-// waitForActionCompletion if a command returns an *hcloud.Action struct, this is a long-running job on the Hetzner side.
-// If we need to wait for it to finish to rely upon it later, this command will wait until we have success or that
-// there's an error
-func (h *Hetzner) waitForActionCompletion(ctx context.Context, action *hcloud.Action, timeout ...time.Duration) error {
-	if action == nil {
-		log.Default.Debug("No action received")
-		return nil
-	}
-
-	if len(timeout) == 0 {
-		timeout = []time.Duration{
-			time.Minute,
-		}
-	}
-
-	startTime := time.Now()
-	timeoutTime := startTime.Add(timeout[0])
-
-	for {
-		time.Sleep(time.Second)
-
-		now := time.Now()
-
-		if now.After(timeoutTime) {
-			log.Default.Errorf("action timedout: %d", action.ID)
-
-			return fmt.Errorf("action timed out")
-		}
-
-		log.Default.Debug("Checking action status")
-
-		status, _, err := h.client.Action.GetByID(ctx, action.ID)
-		if err != nil {
-			return err
-		}
-
-		log.Default.Debugf("Current status: %s", status.Status)
-
-		if status.Status == hcloud.ActionStatusError {
-			log.Default.Errorf("error completing action - code: %s, message: %s", status.ErrorCode, status.ErrorMessage)
-			return fmt.Errorf("%s: %s", status.ErrorCode, status.ErrorMessage)
-		}
-
-		if status.Status == hcloud.ActionStatusSuccess {
-			break
-		}
-	}
-
-	return nil
 }
 
 func attemptConnection(ctx context.Context, server hcloud.ServerCreateResult, privateKeyFile []byte) *cloudInit {
