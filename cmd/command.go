@@ -60,7 +60,7 @@ var commandCmd = &cobra.Command{
 		}
 
 		// Call external address
-		sshClient, err := ssh.NewSSHClient(hetzner.SSH_USERNAME, fmt.Sprintf("%s:%d", server.PublicNet.IPv4.IP, hetzner.SSH_PORT), privateKey)
+		sshClient, err := ssh.NewSSHClient(hetzner.SSHUsername, fmt.Sprintf("%s:%d", server.PublicNet.IPv4.IP, hetzner.SSHPort), privateKey)
 		if err != nil {
 			return errors.Wrap(err, "create ssh client")
 		}

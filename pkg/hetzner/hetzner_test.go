@@ -31,12 +31,14 @@ func TestFingerPrintGenerate(t *testing.T) {
 		Error       error
 	}{
 		{
-			Name:        "rsa-1",
+			Name: "rsa-1",
+			//nolint
 			PublicKey:   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVEnA5bsxU1ltrt9mPho/JrVeMS17sI9GjIeNCLcb2bIFTzZ6I8d+hFddgmHFItgLJLJWUYDIHjhE0yB6zLKVkDmeQ/T4Qy2UaV2x8O+KQa+7Chl8DaTfnr/0b8flaFG9VSLJKA/QJ/Sl07oCbRQt3l9bHXvVMux0VTGavEjpKwtFFtWkDx/vDxJoFsA+oMkGaF2AP2+jIc3WCATaprllUxI42pav52m065fpPEvMfK8LJ3L6t5IOa49LieoNPz23s5GOsN66E6kmNuuWQ/HH7I0vPovoeHqizX9CkHTdTYuI87Je39yEjVliMQurEUouHlZU075P06SBYGnObp9yp",
 			Fingerprint: "99:e0:3a:b1:44:4a:7b:d1:6e:d7:61:a1:5f:f8:ec:6c",
 		},
 		{
-			Name:        "rsa-2",
+			Name: "rsa-2",
+			//nolint
 			PublicKey:   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEAIu+Kqb3/3Lju+6r4DG7Vj36FtCf98wkWAcJECdvOde9QvBWLNC3butZZDUdu85ceQ0gRQrLXhLO8hwmf9ByRfUbsAiPR/xEMBKrYnHdaZEjwQMELGeoYpm3xQtcKHI5jRBdrR6jd0GLjwev8EDIJYmXF0Mu5GYR1aTadkKQBEPv52XcJgVS17HxI+L5s44xoqUedLUPBR2toj3ga7awzVDBRhlJRrShvmOso0AuOxRm1IfjtA1bsSgov2041v92d/xHURCfCLc6Nu/TEhKgx6DZk4flslMcRUdT5z/HeWfBtrjl0tTrJ6fIHffi/v9MsXXwnKe6dhUn5Ey10brN",
 			Fingerprint: "20:98:ed:f5:86:af:db:0e:ea:99:97:12:88:ce:22:3b",
 		},
