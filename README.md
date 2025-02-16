@@ -1,5 +1,10 @@
 # DevPod Provider Hetzner
 
+<!-- markdownlint-disable-next-line MD013 MD034 -->
+[![Go Report Card](https://goreportcard.com/badge/github.com/mrsimonemms/devpod-provider-hetzner)](https://goreportcard.com/report/github.com/mrsimonemms/devpod-provider-hetzner)
+
+DevPod on Hetzner
+
 <!-- toc -->
 
 * [Usage](#usage)
