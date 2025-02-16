@@ -55,12 +55,77 @@ jobs:
 
       - uses: pre-commit/action@v3.0.1
 
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      DISK_IMAGE: docker-ce
+      DISK_SIZE: "30"
+      # Use ID only to ensure labels don't overspill
+      MACHINE_ID: ${{ github.run_id }}
+      MACHINE_FOLDER: ${{ github.workspace }}./ssh
+      MACHINE_TYPE: "cx22"
+      REGION: "nbg1"
+      SSH_KEY_PUB: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK2sB1n570BgGJ3+I0Dgzxhlf9ukc+Hp+C/zsIH4J8Xm vscode@df47ba471beb"
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hetznercloud/setup-hcloud@v1
+
+      - name: Set up SSH keys
+        run: |
+          mkdir -p ${MACHINE_FOLDER}
+          echo ${SSH_KEY_PUB} > ${MACHINE_FOLDER}/sshkey.pub
+          echo ${SSH_KEY} > ${MACHINE_FOLDER}/sshkey
+          ls -la ${MACHINE_FOLDER}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - run: go build -o provider .
+
+      - name: Create command
+        run: ./provider create
+
+      - name: Run command
+        env:
+          COMMAND: hostname
+        run: ./provider command | grep devpod-${MACHINE_ID}
+
+      - name: Stop command
+        run: ./provider stop
+
+      - name: Start command
+        run: ./provider start
+
+      - name: Run command
+        env:
+          COMMAND: hostname
+        run: ./provider command | grep devpod-${MACHINE_ID}
+
+      - name: Delete command
+        run: ./provider delete
+
+      # This can fail due to resources failing to detach properly
+      - name: Ensure destruction
+        if: ${{ always() }}
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: ./hack/hcloud_destroy.sh
+
   build:
     runs-on: ubuntu-latest
     needs:
       - commitlint
+      - e2e
       - test
     env:
+      # Used to get default HCloud values
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v4
