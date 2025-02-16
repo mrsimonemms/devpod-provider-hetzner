@@ -157,7 +157,8 @@ func (h *Hetzner) BuildServerOptions(
 		ServerType: serverType,
 		Image:      image,
 		Labels: map[string]string{
-			"type": "devpod",
+			"type":         "devpod",
+			labelMachineID: opts.MachineID,
 		},
 		SSHKeys: []*hcloud.SSHKey{
 			sshKey,
@@ -183,9 +184,7 @@ func (h *Hetzner) Create(ctx context.Context, req *hcloud.ServerCreateOpts, disk
 			Size:      diskSize,
 			Format:    hcloud.Ptr("ext4"),
 			Automount: hcloud.Ptr(false),
-			Labels: map[string]string{
-				"type": "devpod",
-			},
+			Labels:    req.Labels,
 		})
 		if err != nil {
 			return err
