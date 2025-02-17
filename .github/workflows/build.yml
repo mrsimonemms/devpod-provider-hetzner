@@ -120,10 +120,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs:
-      - commitlint
-      - e2e
-      - test
+    outputs:
+      is_tag: ${{ steps.branch-name.outputs.is_tag }}
     env:
       # Used to get default HCloud values
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
@@ -165,8 +163,26 @@ jobs:
           GIT_REPO: ${{ steps.version.outputs.gitRepo }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - commitlint
+      - e2e
+      - test
+    if: needs.build.outputs.is_tag == 'true'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
       - uses: actions/setup-node@v4
-        if: steps.branch-name.outputs.is_tag == 'true'
 
       - name: Build Changelog
         id: github_release
@@ -175,8 +191,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
-        if: steps.branch-name.outputs.is_tag == 'true'
         uses: softprops/action-gh-release@v1
         with:
-          body: ${{steps.github_release.outputs.changelog}}
+          body: ${{ steps.github_release.outputs.changelog }}
           files: dist/*
