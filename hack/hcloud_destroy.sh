@@ -17,7 +17,7 @@
 set -e
 
 echo "Listing volumes"
-volumes=$(hcloud volume list -l machineId=devpod-${MACHINE_ID} -o noheader -o columns=id)
+volumes=$(hcloud volume list -l machineId=${MACHINE_ID} -o noheader -o columns=id)
 
 for i in ${volumes}; do
   echo "Detaching volume ${i} from server"
@@ -28,7 +28,7 @@ for i in ${volumes}; do
 done
 
 echo "Listing servers"
-servers=$(hcloud server list -l machineId=devpod-${MACHINE_ID} -o noheader -o columns=id)
+servers=$(hcloud server list -l machineId=${MACHINE_ID} -o noheader -o columns=id)
 
 for i in ${servers}; do
   echo "Deleting server ${i}"
@@ -36,7 +36,7 @@ for i in ${servers}; do
 done
 
 echo "Listing SSH keys"
-ssh_keys=$(hcloud ssh-key list -l machineId=devpod-${MACHINE_ID} -o noheader -o columns=id)
+ssh_keys=$(hcloud ssh-key list -l machineId=${MACHINE_ID} -o noheader -o columns=id)
 
 for i in ${ssh_keys}; do
   echo "Deleting SSH key ${i}"
