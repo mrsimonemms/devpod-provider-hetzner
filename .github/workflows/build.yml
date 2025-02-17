@@ -61,8 +61,7 @@ jobs:
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       DISK_IMAGE: docker-ce
       DISK_SIZE: "30"
-      # Use ID only to ensure labels don't overspill
-      MACHINE_ID: ${{ github.run_id }}
+      MACHINE_ID: test-${{ github.run_id }}
       MACHINE_FOLDER: ${{ github.workspace }}./ssh
       MACHINE_TYPE: "cx22"
       REGION: "nbg1"
@@ -93,7 +92,7 @@ jobs:
       - name: Run command
         env:
           COMMAND: hostname
-        run: ./provider command | grep devpod-${MACHINE_ID}
+        run: ./provider command | grep ${MACHINE_ID}
 
       - name: Stop command
         run: ./provider stop
@@ -104,7 +103,7 @@ jobs:
       - name: Run command
         env:
           COMMAND: hostname
-        run: ./provider command | grep devpod-${MACHINE_ID}
+        run: ./provider command | grep ${MACHINE_ID}
 
       - name: Delete command
         run: ./provider delete
