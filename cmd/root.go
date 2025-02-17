@@ -41,6 +41,10 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
+		if token := os.Getenv("TOKEN"); token != "" {
+			log.Default.Warn("TOKEN envvar is deprecated in favour of HCLOUD_TOKEN")
+		}
+
 		return nil
 	},
 }

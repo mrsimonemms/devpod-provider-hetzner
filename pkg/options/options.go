@@ -49,8 +49,8 @@ func FromEnv(skipMachine bool) (*Options, error) {
 		}
 	}
 
-	// DevPod uses "TOKEN", but Hetzner uses "HCLOUD_TOKEN" - allow HCLOUD_TOKEN for development
-	retOptions.Token, err = fromEnvOrError("TOKEN", "HCLOUD_TOKEN")
+	// TOKEN is deprecated
+	retOptions.Token, err = fromEnvOrError("HCLOUD_TOKEN", "TOKEN")
 	if err != nil {
 		return nil, err
 	}

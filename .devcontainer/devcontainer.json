@@ -32,7 +32,6 @@
     "MACHINE_FOLDER": "/home/vscode/.ssh",
     "MACHINE_TYPE": "cx22",
     "REGION": "nbg1",
-    "TOKEN": "",
     "HCLOUD_TOKEN": ""
   }
 }

@@ -52,6 +52,7 @@ To use this provider in your DevPod setup, you will need to do the following ste
 | `MACHINE_ID` | Unique identifier for the machine | `some-machine-id` |
 | `MACHINE_TYPE` | Hetzner machine size | `cx22` |
 | `REGION` | Hetzner region ID | `nbg1` |
+| `TOKEN` | **Deprecated**. Replaced by `HCLOUD_TOKEN` | - |
 
 ### Testing independently of DevPod
 
