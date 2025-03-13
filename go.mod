@@ -17,12 +17,13 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
+	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
@@ -57,7 +58,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/tidwall/jsonc v0.3.2 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
