@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/mrsimonemms/pre-commit-hooks
-    rev: v1.2.0
+    rev: v1.2.1
     hooks:
       - id: license-eye
       - id: go-fmt-import

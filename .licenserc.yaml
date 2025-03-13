@@ -4,11 +4,11 @@ header:
     copyright-owner: "Simon Emms <simon@simonemms.com>"
     copyright-year: 2023
   paths-ignore:
-    - dist
-    - tmp
+    - "**/dist"
+    - "**/tmp"
     - LICENSE
-    - .*
-    - "go.*"
+    - "**/.*"
+    - "**/go.*"
     - "**/*.{json,md,yml,yaml}"
     - "**/.gitkeep"
   comment: on-failure
