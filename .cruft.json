@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/mrsimonemms/new",
-  "commit": "b75b892063ef69dd37d1b48040f2dd2125292b71",
+  "commit": "31026d30d7422cb70b7dc482b946e292a6e12434",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -10,7 +10,7 @@
       "repo": "github.com/mrsimonemms/devpod-provider-hetzner",
       "use_viper": false,
       "_template": "https://github.com/mrsimonemms/new",
-      "_commit": "b75b892063ef69dd37d1b48040f2dd2125292b71"
+      "_commit": "31026d30d7422cb70b7dc482b946e292a6e12434"
     }
   },
   "directory": "golang-cobra",
