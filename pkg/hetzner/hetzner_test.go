@@ -56,16 +56,14 @@ func TestFingerPrintGenerate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			assert := assert.New(t)
-
 			f, err := generateSSHKeyFingerprint(test.PublicKey)
 
 			if test.Error == nil {
-				assert.NoError(err)
+				assert.NoError(t, err)
 			} else {
-				assert.Error(err, test.Error)
+				assert.Error(t, err, test.Error)
 			}
-			assert.Equal(f, test.Fingerprint)
+			assert.Equal(t, f, test.Fingerprint)
 		})
 	}
 }

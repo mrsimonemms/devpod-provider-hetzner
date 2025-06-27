@@ -34,15 +34,15 @@ var createCmd = &cobra.Command{
 }
 
 func createOrStartServer(cmd *cobra.Command, args []string) error {
-	options, err := options.FromEnv(false)
+	opts, err := options.FromEnv(false)
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
-	h := hetzner.NewHetzner(options.Token)
+	h := hetzner.NewHetzner(opts.Token)
 
-	req, publicKey, privateKey, err := h.BuildServerOptions(ctx, options)
+	req, publicKey, privateKey, err := h.BuildServerOptions(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func createOrStartServer(cmd *cobra.Command, args []string) error {
 		return errors.New("no public key generated")
 	}
 
-	diskSize, err := strconv.Atoi(options.DiskSize)
+	diskSize, err := strconv.Atoi(opts.DiskSize)
 	if err != nil {
 		return errors.Wrap(err, "parse disk size")
 	}
