@@ -35,7 +35,7 @@ To use this provider in your DevPod setup, you will need to do the following ste
 1. Use the reference `mrsimonemms/devpod-provider-hetzner` to download the latest
    release from GitHub
 1. Get an [API token](https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/)
-   from Hetzner. This will be used to manage resources.
+   from Hetzner with `read & write` access. This will be used to manage resources.
 
 ## Development
 
@@ -48,7 +48,7 @@ To use this provider in your DevPod setup, you will need to do the following ste
 | `DISK_IMAGE` | Hetzner image tag | `docker-ce` |
 | `DISK_SIZE` | Disk size in GB | `30` |
 | `GIT_REPO` | Git repo to download | `github.com/mrsimonemms/devpod-provider-hetzner` |
-| `HCLOUD_TOKEN` | [Hetzner API key](https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/) | - |
+| `HCLOUD_TOKEN` | [Hetzner API token](https://docs.hetzner.com/cloud/api/getting-started/generating-api-token/) with `read & write` access | - |
 | `MACHINE_FOLDER` | Local home folder | `~/.ssh` |
 | `MACHINE_ID` | Unique identifier for the machine | `some-machine-id` |
 | `MACHINE_TYPE` | Hetzner machine size | `cx22` |
