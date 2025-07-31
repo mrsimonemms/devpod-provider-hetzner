@@ -7,6 +7,7 @@ DevPod on Hetzner
 
 <!-- toc -->
 
+* [Project status](#project-status)
 * [Usage](#usage)
 * [Development](#development)
   * [Required environment variables](#required-environment-variables)
@@ -25,6 +26,14 @@ DevPod on Hetzner
 
 [DevPod](https://devpod.sh/) on [Hetzner](https://hetzner.cloud/?ref=UWVUhEZNkm6p).
 This is based upon the [DigitalOcean provider](https://github.com/loft-sh/devpod-provider-digitalocean).
+
+## Project status
+
+**This project is feature-complete and in maintenance-mode**.
+
+This project is very much alive and will receive regular dependency updates. I
+do not intend to add any new features unless requested by a large number of people
+or to fix changes made by DevPod or Hetzner.
 
 ## Usage
 
