@@ -143,9 +143,19 @@ func (h *Hetzner) BuildServerOptions(
 		// Machines starting "cax" are ARM64
 		arch = hcloud.ArchitectureARM
 	}
-	image, _, err := h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, arch)
-	if err != nil {
-		return nil, nil, nil, err
+
+	var image *hcloud.Image
+	if id, err := strconv.ParseInt(opts.DiskImage, 10, 64); err == nil {
+		// Numeric ID — look up directly (supports snapshots, which have no name)
+		image, _, err = h.client.Image.GetByID(ctx, id)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	} else {
+		image, _, err = h.client.Image.GetByNameAndArchitecture(ctx, opts.DiskImage, arch)
+		if err != nil {
+			return nil, nil, nil, err
+		}
 	}
 	if image == nil {
 		return nil, nil, nil, ErrUnknownDiskImage
