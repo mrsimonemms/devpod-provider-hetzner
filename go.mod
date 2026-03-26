@@ -1,6 +1,6 @@
 module github.com/mrsimonemms/devpod-provider-hetzner
 
-go 1.24.3
+go 1.25.5
 
 // The direct dependency incorrectly references the new vanity URL
 replace github.com/alessio/shellescape => al.essio.dev/pkg/shellescape v1.5.1
@@ -12,10 +12,10 @@ require (
 	github.com/loft-sh/log v0.0.0-20250610153027-c2f046135b12
 	github.com/mrsimonemms/hetzner-golang-actions v0.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.45.0
+	golang.org/x/crypto v0.48.0
 	gopkg.in/yaml.v3 v3.0.1
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -42,8 +42,8 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
-	github.com/moby/buildkit v0.26.2 // indirect
-	github.com/moby/patternmatcher v0.6.0 // indirect
+	github.com/moby/buildkit v0.28.1 // indirect
+	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
@@ -55,11 +55,11 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/tidwall/jsonc v0.3.2 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/term v0.37.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/term v0.40.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
